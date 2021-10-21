@@ -11,6 +11,5 @@ Press "P" to generate a random path between the purple end points.
 Grids that have upwards of 100 cells will take several seconds to generate as no optimization has been performed yet.
 
 <br>
-<img src="https://imgur.com/EBIWFST" width="800px" height="auto">
-<br>
-<img src="https://imgur.com/MgUCGKP" width="800px" height="auto">
+<img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto"></img> 
+<img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto"></img>
