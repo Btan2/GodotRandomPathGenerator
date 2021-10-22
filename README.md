@@ -14,6 +14,7 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 
 # Controls
 WASD - Move
+P - Generate new maze [WARNING: DO NOT USE YET OR IT WILL CRASH, FIX INCOMING SOON]
 
 # Current Issues and TODOs
   - Grids that have upwards of 100 cells will take several seconds to generate as no optimization has been performed yet.
