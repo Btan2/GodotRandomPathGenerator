@@ -18,9 +18,8 @@ WASD - Move
 <br>
 Mouse - Look
 <br>
-P - Generate new maze [WARNING: DO NOT USE YET OR IT WILL CRASH, FIX INCOMING SOON]
+<strike>P - Generate new maze</strike> [Not working yet]
 
 # Current Issues and TODOs
   - Grids that have upwards of 100 cells will take several seconds to generate as no optimization has been performed yet.
-  - Character controller is extremely basic at the moment and has buggy collision
-  - Mesh colliders are unoptimized
+  - Character controller is extremely basic at the moment, collision may be buggy
