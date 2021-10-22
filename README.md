@@ -16,6 +16,8 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 # Controls
 WASD - Move 
 <br>
+Mouse - Look
+<br>
 P - Generate new maze [WARNING: DO NOT USE YET OR IT WILL CRASH, FIX INCOMING SOON]
 
 # Current Issues and TODOs
