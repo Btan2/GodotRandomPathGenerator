@@ -10,7 +10,7 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 <br>
 <img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto">
 <img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
-<img src="https://imgur.com/5XJuvQF.jpg" width="200px" height="auto">
+<img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 
 # Controls
 WASD - Move
