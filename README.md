@@ -13,7 +13,7 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 
 # Controls
-WASD - Move
+WASD - Move 
 P - Generate new maze [WARNING: DO NOT USE YET OR IT WILL CRASH, FIX INCOMING SOON]
 
 # Current Issues and TODOs
