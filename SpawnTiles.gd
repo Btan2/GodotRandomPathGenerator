@@ -26,19 +26,26 @@ Source: https://github.com/BorisTheBrave/chiseled-random-paths
 
 extends Spatial
 
-onready var tile = preload("res://Tile.tscn")
-onready var camera = $Camera
+onready var tile_cell = preload("res://Tile_Cell.tscn")
 
-const SCALE = 1
+onready var tile_ceiling = $Ceiling
+onready var tile_floor = $Floor
+
+const SCALE = 2
 
 var rng = RandomNumberGenerator.new()
 var grid = []
-var grid_size : int = 20
+export var grid_size : int = 20
 var num = 1
 var low = []
 var dfsNum = []
 var isArticulation = []
-var neighbours = [[1, 0],[0, 1],[-1, 0],[0, -1]]
+var neighbours = [[1, 0],[0, 1],[-1, 0],[0, -1]] #[RIGHT, UP, LEFT, DOWN]
+
+var exit = Vector2.ZERO
+
+enum { BLANK, PATH, END }
+var type
 
 """
 ====================
@@ -47,9 +54,15 @@ _ready
 """
 func _ready():
 	rng.randomize()
-	spawn_tiles(grid_size)
-	camera.transform.origin = Vector3(grid_size/2, grid_size*1.5, grid_size/1.8) * SCALE
+	initialize_grid(grid_size)
 	generate_path()
+	spawn_tiles()
+	
+	# Set floor/ceiling transforms
+	tile_ceiling.scale = Vector3.ONE * grid_size
+	tile_ceiling.global_transform.origin = Vector3(grid_size*SCALE/2.105, 2, grid_size*SCALE/2.105)
+	tile_floor.scale = Vector3.ONE * grid_size
+	tile_floor.global_transform.origin = Vector3(grid_size*SCALE/2.105, 0, grid_size*SCALE/2.105)
 
 """
 ====================
@@ -63,20 +76,44 @@ func _input(event):
 
 """
 ====================
-spawn_tiles
+initialize_grid
 ====================
 """
-func spawn_tiles(count):
+func initialize_grid(count):
 	for i in count:
 		grid.append([])
 		for j in count:
-			var t = tile.instance()
-			t.set_type("PATH")
-			add_child(t)
-			t.global_transform.origin = Vector3(j * SCALE, 0, i * SCALE)
-			grid[i].append(t)
+			grid[i].append(PATH)
 	
 	grid_size = len(grid)
+
+"""
+====================
+spawn_tiles
+====================
+"""
+func spawn_tiles():
+	for x in grid_size:
+		for y in grid_size:
+			if grid[x][y] == BLANK:
+				continue
+			
+			var tile = tile_cell.instance()
+			add_child(tile)
+			
+			var count = 0
+			for d in neighbours:
+				var vx = x + d[0]
+				var vy = y + d[1]
+				var valid = is_valid(vx,vy)
+				
+				if !valid or (valid and grid[vx][vy] == BLANK):
+					var child = tile.get_child(count)
+					child.visible = true
+					child.get_node("StaticBody/CollisionShape").disabled = false
+				count += 1
+			
+			tile.global_transform.origin = Vector3(x, 0, y) * SCALE
 
 """
 ====================
@@ -86,7 +123,7 @@ reset_tiles
 func reset_tiles():
 	for i in range(grid_size):
 		for j in range(grid_size):
-			grid[i][j].set_type("PATH")
+			grid[i][j] = PATH
 
 """
 ====================
@@ -115,6 +152,8 @@ func generate_path():
 	ends[grid_size-1][grid_size-1] = true
 	var h = int(grid_size/2)
 	ends[h][h] = true
+	var t = int(grid_size/3)
+	ends[0][t] = true
 	
 	set_ends(ends)
 	
@@ -129,6 +168,16 @@ func generate_path():
 
 """
 ====================
+is_valid
+====================
+"""
+func is_valid(row, col):
+	if row >= 0 and row < grid_size and col >= 0 and col < grid_size:
+		return true
+	return false
+
+"""
+====================
 set_ends
 ====================
 """
@@ -136,7 +185,7 @@ func set_ends(ends):
 	for i in range(grid_size):
 		for j in range(grid_size):
 			if ends[i][j]:
-				grid[i][j].set_type("END")
+				grid[i][j] = END
 
 """
 ====================
@@ -148,7 +197,7 @@ Check if path array contains any points that are not articulation points
 func removable_paths(a_points):
 	for i in range(grid_size):
 		for j in range(grid_size):
-			if grid[i][j].type == 1 and !a_points[i][j]:
+			if grid[i][j] == PATH and !a_points[i][j]:
 				return true
 	return false
 
@@ -164,8 +213,8 @@ func remove_random_tile(ap):
 	var i = rng.randi_range(0,grid_size-1)
 	var j = rng.randi_range(0,grid_size-1)
 	
-	if grid[i][j].type == 1 and !ap[i][j]:
-		grid[i][j].set_type("BLANK")
+	if grid[i][j] == PATH and !ap[i][j]:
+		grid[i][j] = BLANK
 		#print("removed cell: [" + str(ri) + "][" + str(rj) + "]")
 
 """
@@ -191,7 +240,7 @@ func find_articulation_points(relevant):
 	# Find starting point
 	for x in range(grid_size):
 		for y in range(grid_size):
-			if grid[x][y].type == 0:
+			if grid[x][y] == BLANK:
 				continue
 			if len(relevant) > 0 and !relevant[x][y]:
 				continue
@@ -228,7 +277,7 @@ func cut_vertex(ux : int, uy : int, relevant):
 		var vy = uy + d[1]
 		if vx < 0 or vx >= grid_size or vy < 0 or vy >= grid_size:
 			 continue
-		if grid[vx][vy].type == 0:
+		if grid[vx][vy] == BLANK:
 			continue
 		
 		# v is a neighbour of u
