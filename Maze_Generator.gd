@@ -26,26 +26,24 @@ Source: https://github.com/BorisTheBrave/chiseled-random-paths
 
 extends Spatial
 
-onready var tile_cell = preload("res://Tile_Cell.tscn")
-
 onready var tile_ceiling = $Ceiling
 onready var tile_floor = $Floor
+onready var material_redbrick = preload("res://Mat_RedBricks.tres")
 
 const SCALE = 2
 
 var rng = RandomNumberGenerator.new()
 var grid = []
-export var grid_size : int = 20
 var num = 1
 var low = []
 var dfsNum = []
 var isArticulation = []
-var neighbours = [[1, 0],[0, 1],[-1, 0],[0, -1]] #[RIGHT, UP, LEFT, DOWN]
-
 var exit = Vector2.ZERO
 
 enum { BLANK, PATH, END }
 var type
+
+export var grid_size : int = 20
 
 """
 ====================
@@ -64,15 +62,15 @@ func _ready():
 	tile_floor.scale = Vector3.ONE * grid_size
 	tile_floor.global_transform.origin = Vector3(grid_size*SCALE/2.105, 0, grid_size*SCALE/2.105)
 
-"""
-====================
-_input
-====================
-"""
-func _input(event):
-	if Input.is_key_pressed(KEY_P):
-		reset_tiles()
-		generate_path()
+#"""
+#====================
+#_input
+#====================
+#"""
+#func _input(event):
+#	if Input.is_key_pressed(KEY_P):
+#		reset_tiles()
+#		generate_path()
 
 """
 ====================
@@ -90,40 +88,69 @@ func initialize_grid(count):
 """
 ====================
 spawn_tiles
+
+Creates a multi mesh of wall tiles with static trimesh colliders
 ====================
 """
 func spawn_tiles():
+	var mesh = PlaneMesh.new()
+	mesh.size = Vector2(1,1) * SCALE
+	mesh.surface_set_material(0, material_redbrick)
+	
+	var multiMesh = MultiMesh.new()
+	multiMesh.transform_format = MultiMesh.TRANSFORM_3D
+	multiMesh.color_format = MultiMesh.COLOR_FLOAT
+	multiMesh.mesh = mesh
+	multiMesh.instance_count = 0
+	
+	var t_array = []
+	var r = [90,0,-90,180]
+	var p = [[1,0],[0,1],[-1,0],[0,-1]]
+	
 	for x in grid_size:
 		for y in grid_size:
 			if grid[x][y] == BLANK:
 				continue
 			
-			var tile = tile_cell.instance()
-			add_child(tile)
-			
-			var count = 0
-			for d in neighbours:
-				var vx = x + d[0]
-				var vy = y + d[1]
-				var valid = is_valid(vx,vy)
+			for i in range(4):
+				var vx = x + p[i][0]
+				var vy = y + p[i][1]
 				
+				var valid = is_valid(vx,vy)
 				if !valid or (valid and grid[vx][vy] == BLANK):
-					var child = tile.get_child(count)
-					child.visible = true
-					child.get_node("StaticBody/CollisionShape").disabled = false
-				count += 1
-			
-			tile.global_transform.origin = Vector3(x, 0, y) * SCALE
+					multiMesh.instance_count += 1
+					
+					var t = Transform()
+					t.basis = Basis()
+					t.basis = t.basis.rotated(Vector3(1, 0, 0), deg2rad(-90))
+					t.basis = t.basis.rotated(Vector3(0,1,0), deg2rad(r[i]))
+					t.origin = Vector3(p[i][0], 1, p[i][1]) + Vector3(x, 0, y) * SCALE
+					t_array.append(t)
+	
+	var mmi = MultiMeshInstance.new()
+	mmi.multimesh = multiMesh
+	var shape = multiMesh.mesh.create_trimesh_shape()
+	var collisionNode = StaticBody.new()
+	mmi.add_child(collisionNode)
+	
+	for i in multiMesh.instance_count:
+		multiMesh.set_instance_transform(i, t_array[i])
+		var collisionShape = CollisionShape.new()
+		collisionShape.shape = shape
+		collisionShape.transform = t_array[i]
+		collisionNode.add_child(collisionShape)
+	
+	add_child(mmi)
 
-"""
-====================
-reset_tiles
-====================
-"""
-func reset_tiles():
-	for i in range(grid_size):
-		for j in range(grid_size):
-			grid[i][j] = PATH
+#"""
+#====================
+#reset_tiles
+#====================
+#"""
+#func reset_tiles():
+#	for i in range(grid_size):
+#		for j in range(grid_size):
+#			grid[i][j] = PATH
 
 """
 ====================
@@ -150,19 +177,19 @@ func generate_path():
 	ends[0][grid_size-1] = true
 	ends[grid_size-1][0] = true
 	ends[grid_size-1][grid_size-1] = true
+	
 	var h = int(grid_size/2)
 	ends[h][h] = true
+	
 	var t = int(grid_size/3)
 	ends[0][t] = true
 	
 	set_ends(ends)
 	
-	# Remove tiles in random order until only end and 
-	# articulation points remain
 	var a_points
 	while true:
 		a_points = find_articulation_points(ends)
-		if !removable_paths(a_points):
+		if !removable_tiles(a_points):
 			break
 		remove_random_tile(a_points)
 
@@ -194,7 +221,7 @@ removable_paths
 Check if path array contains any points that are not articulation points
 ====================
 """
-func removable_paths(a_points):
+func removable_tiles(a_points):
 	for i in range(grid_size):
 		for j in range(grid_size):
 			if grid[i][j] == PATH and !a_points[i][j]:
@@ -272,6 +299,7 @@ func cut_vertex(ux : int, uy : int, relevant):
 	low[ux][uy] = num
 	dfsNum[ux][uy] = num
 	
+	var neighbours = [[1, 0],[0, 1],[-1, 0],[0, -1]]
 	for d in neighbours:
 		var vx = ux + d[0]
 		var vy = uy + d[1]
