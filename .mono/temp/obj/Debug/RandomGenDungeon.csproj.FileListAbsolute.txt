@@ -1,0 +1,8 @@
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/bin/Debug/RandomGenDungeon.dll
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/bin/Debug/RandomGenDungeon.pdb
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/obj/Debug/RandomGenDungeon.csprojAssemblyReference.cache
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/obj/Debug/RandomGenDungeon.AssemblyInfoInputs.cache
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/obj/Debug/RandomGenDungeon.AssemblyInfo.cs
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/obj/Debug/RandomGenDungeon.csproj.CoreCompileInputs.cache
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/obj/Debug/RandomGenDungeon.dll
+/home/jcab/Munted/GD_Projects/RandomGenDungeon/.mono/temp/obj/Debug/RandomGenDungeon.pdb

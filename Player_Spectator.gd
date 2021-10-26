@@ -4,7 +4,7 @@ onready var collider : CollisionShape = $CollisionShape
 onready var head : Spatial = $Head
 onready var camera : Camera = $Head/Camera
 
-const MAXSPEED : float = 8.0        # default: 32.0
+const MAXSPEED : float = 4.0        # default: 32.0
 const WALKSPEED : float = 4.0       # default: 16.0
 const ACCELERATE : float = 10.0     # default: 10.0
 const MOVEFRICTION : float = 6.0    # default: 6.0
@@ -65,9 +65,5 @@ func _physics_process(delta):
 	else:
 		velocity = velocity.linear_interpolate(Vector3.ZERO, MOVEFRICTION * delta) 
 	
-	if noclip:
-		for i in range(3):
-			global_transform.origin[i] += velocity[i] * delta
-	else:
-		velocity = move_and_slide(velocity)
+	velocity = move_and_slide(velocity)
 

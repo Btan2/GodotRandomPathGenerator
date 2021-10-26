@@ -39,6 +39,7 @@ var low = []
 var dfsNum = []
 var isArticulation = []
 var exit = Vector2.ZERO
+var start = Vector2.ZERO
 
 enum { BLANK, PATH, END }
 var type
@@ -83,7 +84,7 @@ func initialize_grid(count):
 		for j in count:
 			grid[i].append(PATH)
 	
-	grid_size = len(grid)
+	grid_size = count
 
 """
 ====================
@@ -94,7 +95,7 @@ Creates a multi mesh of wall tiles with static trimesh colliders
 """
 func spawn_tiles():
 	var mesh = PlaneMesh.new()
-	mesh.size = Vector2(1,1) * SCALE
+	mesh.size = Vector2.ONE * SCALE
 	mesh.surface_set_material(0, material_redbrick)
 	
 	var multiMesh = MultiMesh.new()
@@ -122,7 +123,7 @@ func spawn_tiles():
 					
 					var t = Transform()
 					t.basis = Basis()
-					t.basis = t.basis.rotated(Vector3(1, 0, 0), deg2rad(-90))
+					t.basis = t.basis.rotated(Vector3(1,0,0), deg2rad(-90))
 					t.basis = t.basis.rotated(Vector3(0,1,0), deg2rad(r[i]))
 					t.origin = Vector3(p[i][0], 1, p[i][1]) + Vector3(x, 0, y) * SCALE
 					t_array.append(t)
@@ -174,13 +175,13 @@ func generate_path():
 #	ends[b0][b1] = true
 	
 	ends[0][0] = true
+	start = Vector2(0,0)
+	
 	ends[0][grid_size-1] = true
 	ends[grid_size-1][0] = true
 	ends[grid_size-1][grid_size-1] = true
-	
 	var h = int(grid_size/2)
 	ends[h][h] = true
-	
 	var t = int(grid_size/3)
 	ends[0][t] = true
 	
@@ -307,7 +308,7 @@ func cut_vertex(ux : int, uy : int, relevant):
 			 continue
 		if grid[vx][vy] == BLANK:
 			continue
-		
+		 
 		# v is a neighbour of u
 		var unvisited = !dfsNum[vx][vy];
 		if unvisited:
