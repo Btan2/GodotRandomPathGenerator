@@ -10,8 +10,11 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 
 <br>
 <div>
-<img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto">&nbsp<img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
-  </div
+  <img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto">
+  &nbsp
+  <img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
+</div>
+
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 
 With fog and weighted randomization:
