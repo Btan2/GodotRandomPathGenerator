@@ -4,6 +4,7 @@ Generates a randomized path that connects to various ends points. The end goal o
 The code uses the "Chiseled Random Paths" algorithm from BorisTheBrave's project (converted to GDScript): https://github.com/BorisTheBrave/chiseled-random-paths
 
 This project is under the MIT license.
+<br>
 This project uses textures from the Pixar128 set by Pixar Animation Studios: https://renderman.pixar.com/pixar-one-twenty-eight
 <br>
 The textures are under the Creative Commons 4.0 Attribution License: https://creativecommons.org/licenses/by/4.0/
