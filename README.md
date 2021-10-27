@@ -31,5 +31,6 @@ Mouse - Look
 P - Generate new maze
 
 # Current Issues and TODOs
+  - Requires Mono version of Godot to build/edit C# scripts
   - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
   - Player collision is buggy
