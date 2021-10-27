@@ -22,4 +22,3 @@ Mouse - Look
 
 # Current Issues and TODOs
   - Grids that have upwards of 100 cells will take several seconds to generate as no optimization has been performed yet.
-  - Character controller is extremely basic at the moment, collision may be buggy
