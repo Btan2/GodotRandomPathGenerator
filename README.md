@@ -36,5 +36,10 @@ Weighted randomization with 10x scale:
   - P - Generate new maze
 
 # Current Issues and TODOs
-  - Requires Mono version of Godot to build/edit C# scripts
   - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
+  - Long load time with grids greater than 50x50
+# Notes
+  - Requires Mono version of Godot to build/edit C# scripts
+  - The scale const in 'Maze_Generator' can be used to inflate small grids.
+  - Using edited version of Q_Move: https://github.com/Btan2/Q_Move/blob/main/scripts/pmove.gd
+  
