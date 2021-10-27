@@ -9,16 +9,25 @@ This project uses textures from the Pixar128 set by Pixar Animation Studios: htt
 The textures are under the Creative Commons 4.0 Attribution License: https://creativecommons.org/licenses/by/4.0/
 
 <br>
-<img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto">
-<img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
+<div>
+  <img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto">
+  &nbsp
+  <img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
+</div>
+
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
+
+With fog and weighted randomization:
+<br>
+<img src="https://imgur.com/yTUWto8.jpg" width="400px" height="auto">
 
 # Controls
 WASD - Move 
 <br>
 Mouse - Look
 <br>
-<strike>P - Generate new maze</strike> [Not working yet]
+P - Generate new maze
 
 # Current Issues and TODOs
-  - Grids that have upwards of 100 cells will take several seconds to generate as no optimization has been performed yet.
+  - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
+  - Player collision is buggy
