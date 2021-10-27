@@ -2,14 +2,15 @@
 Generates a randomized path that connects to various ends points. The end goal of the project is an efficient random 3D dungeon/maze generator with walls, ceilings and exit zones.
 
 The code uses the "Chiseled Random Paths" algorithm from BorisTheBrave's project: https://github.com/BorisTheBrave/chiseled-random-paths
-Weighted randomization allows editing the probability of specific tiles to be randomly selected (for deleting or state change). This allows for a somewhat more natural randomization.
+<br>
+This script uses weighted randomization which edits the probability of specific tiles to be randomly selected (for deleting or state change). This allows for a somewhat more natural randomization if you edit the probability values right e.g. a higher probability of isolated tiles to be selected for removal.
+<br>
 
 This project is under the MIT license.
 <br>
 This project uses textures from the Pixar128 set by Pixar Animation Studios: https://renderman.pixar.com/pixar-one-twenty-eight
 <br>
 The textures are under the Creative Commons 4.0 Attribution License: https://creativecommons.org/licenses/by/4.0/
-
 <br>
 <div>
   <img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto">
