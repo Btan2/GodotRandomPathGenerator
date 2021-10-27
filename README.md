@@ -31,6 +31,7 @@ Weighted randomization:
   &nbsp
   <img src="https://imgur.com/3XbQUbQ.jpg" width="400px" height="auto">
 </div>
+<br>
 Weighted randomization with 10x scale:
 <br>
 <img src="https://imgur.com/hUJBGs7.jpg" width="400px" height="auto">
