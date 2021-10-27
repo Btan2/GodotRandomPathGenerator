@@ -2,8 +2,8 @@
 
 importer="texture"
 type="StreamTexture"
-path.s3tc="res://.import/Belizan_mahognay_pxr128.jpg-664721714821be441740675bb8fbd90f.s3tc.stex"
-path.etc2="res://.import/Belizan_mahognay_pxr128.jpg-664721714821be441740675bb8fbd90f.etc2.stex"
+path.s3tc="res://.import/Concrete008_Color_DIRTY1.jpg-232d90191ef037e5bb292cd6ca627121.s3tc.stex"
+path.etc2="res://.import/Concrete008_Color_DIRTY1.jpg-232d90191ef037e5bb292cd6ca627121.etc2.stex"
 metadata={
 "imported_formats": [ "s3tc", "etc2" ],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/Belizan_mahognay_pxr128.jpg"
-dest_files=[ "res://.import/Belizan_mahognay_pxr128.jpg-664721714821be441740675bb8fbd90f.s3tc.stex", "res://.import/Belizan_mahognay_pxr128.jpg-664721714821be441740675bb8fbd90f.etc2.stex" ]
+source_file="res://textures/Concrete008_Color_DIRTY1.jpg"
+dest_files=[ "res://.import/Concrete008_Color_DIRTY1.jpg-232d90191ef037e5bb292cd6ca627121.s3tc.stex", "res://.import/Concrete008_Color_DIRTY1.jpg-232d90191ef037e5bb292cd6ca627121.etc2.stex" ]
 
 [params]
 

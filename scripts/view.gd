@@ -84,8 +84,8 @@ func _input(event):
 		mouse_rotation_x = clamp(mouse_rotation_x, -90, 90)
 		player.rotate_y(deg2rad(-event.relative.x * mouse_sensitivity))
 	
-	if Input.is_key_pressed(KEY_P):
-		trigger_shake(5.0)
+#	if Input.is_key_pressed(KEY_P):
+#		trigger_shake(5.0)
 
 """
 ===============

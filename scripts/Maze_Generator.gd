@@ -24,27 +24,27 @@ SOFTWARE.
 Source: https://github.com/BorisTheBrave/chiseled-random-paths
 """
 
-extends Spatial
+extends Node
 
-onready var tile_ceiling = $Ceiling
-onready var tile_floor = $Floor
 onready var material_redbrick = preload("res://Mat_RedBricks.tres")
+onready var t_floor = $Map/Floor
+onready var player = $Player
 
 const SCALE = 2
+const WALLHEIGHT = 2
+const MAXEMPTY = 1.0
 
 var rng = RandomNumberGenerator.new()
-var grid = []
 var num = 1
+var grid_size = 40;
+var total_weight = 0;
+var weights = []
 var low = []
 var dfsNum = []
 var isArticulation = []
-var exit = Vector2.ZERO
-var start = Vector2.ZERO
+var grid = []
 
 enum { BLANK, PATH, END }
-var type
-
-export var grid_size : int = 20
 
 """
 ====================
@@ -53,49 +53,55 @@ _ready
 """
 func _ready():
 	rng.randomize()
-	initialize_grid(grid_size)
+	new_grid()
+
+"""
+====================
+_input
+====================
+"""
+func _input(event):
+	if Input.is_key_pressed(KEY_P):
+		new_grid()
+
+"""
+====================
+new_grid
+====================
+"""
+func new_grid():
+	set_player_pos(Vector3.UP)
+	set_floor()
 	generate_path()
-	spawn_tiles()
-	
-	# Set floor/ceiling transforms
-	tile_ceiling.scale = Vector3.ONE * grid_size
-	tile_ceiling.global_transform.origin = Vector3(grid_size*SCALE/2.105, 2, grid_size*SCALE/2.105)
-	tile_floor.scale = Vector3.ONE * grid_size
-	tile_floor.global_transform.origin = Vector3(grid_size*SCALE/2.105, 0, grid_size*SCALE/2.105)
-
-#"""
-#====================
-#_input
-#====================
-#"""
-#func _input(event):
-#	if Input.is_key_pressed(KEY_P):
-#		reset_tiles()
-#		generate_path()
+	create_multimesh()
 
 """
 ====================
-initialize_grid
+set_player_pos
 ====================
 """
-func initialize_grid(count):
-	for i in count:
-		grid.append([])
-		for j in count:
-			grid[i].append(PATH)
-	
-	grid_size = count
+func set_player_pos(pos : Vector3):
+	player.global_transform.origin = pos
 
 """
 ====================
-spawn_tiles
+set_floor
+====================
+"""
+func set_floor():
+	t_floor.scale = Vector3.ONE * (grid_size+1)
+	t_floor.global_transform.origin = Vector3(grid_size*SCALE/2, 0, grid_size*SCALE/2)
+
+"""
+====================
+create_multimesh
 
 Creates a multi mesh of wall tiles with static trimesh colliders
 ====================
 """
-func spawn_tiles():
+func create_multimesh():
 	var mesh = PlaneMesh.new()
-	mesh.size = Vector2.ONE * SCALE
+	mesh.size = Vector2(1,WALLHEIGHT) * SCALE
 	mesh.surface_set_material(0, material_redbrick)
 	
 	var multiMesh = MultiMesh.new()
@@ -104,7 +110,7 @@ func spawn_tiles():
 	multiMesh.mesh = mesh
 	multiMesh.instance_count = 0
 	
-	var t_array = []
+	var transform_arr = []
 	var r = [90,0,-90,180]
 	var p = [[1,0],[0,1],[-1,0],[0,-1]]
 	
@@ -125,8 +131,8 @@ func spawn_tiles():
 					t.basis = Basis()
 					t.basis = t.basis.rotated(Vector3(1,0,0), deg2rad(-90))
 					t.basis = t.basis.rotated(Vector3(0,1,0), deg2rad(r[i]))
-					t.origin = Vector3(p[i][0], 1, p[i][1]) + Vector3(x, 0, y) * SCALE
-					t_array.append(t)
+					t.origin = Vector3(p[i][0], WALLHEIGHT, p[i][1]) + Vector3(x, 0, y) * SCALE
+					transform_arr.append(t)
 	
 	var mmi = MultiMeshInstance.new()
 	mmi.multimesh = multiMesh
@@ -135,23 +141,13 @@ func spawn_tiles():
 	mmi.add_child(collisionNode)
 	
 	for i in multiMesh.instance_count:
-		multiMesh.set_instance_transform(i, t_array[i])
+		multiMesh.set_instance_transform(i, transform_arr[i])
 		var collisionShape = CollisionShape.new()
 		collisionShape.shape = shape
-		collisionShape.transform = t_array[i]
+		collisionShape.transform = transform_arr[i]
 		collisionNode.add_child(collisionShape)
 	
 	add_child(mmi)
-
-#"""
-#====================
-#reset_tiles
-#====================
-#"""
-#func reset_tiles():
-#	for i in range(grid_size):
-#		for j in range(grid_size):
-#			grid[i][j] = PATH
 
 """
 ====================
@@ -159,65 +155,42 @@ generate_path
 ====================
 """
 func generate_path():
-	# Initialize end points
 	var ends = []
+	grid = []
 	for x in range(grid_size):
 		ends.append([])
+		grid.append([])
 		for y in range(grid_size):
+			grid[x].append(PATH)
 			ends[x].append(false)
 	
-#	var a0 = rng.randi_range(0, 3)
-#	var a1 = rng.randi_range(0, 9)
-#	ends[a0][a1] = true
-#
-#	var b0 = rng.randi_range(5, 9)
-#	var b1 = rng.randi_range(0, 9)
-#	ends[b0][b1] = true
-	
 	ends[0][0] = true
-	start = Vector2(0,0)
+	grid[0][0] = END
 	
-	ends[0][grid_size-1] = true
-	ends[grid_size-1][0] = true
-	ends[grid_size-1][grid_size-1] = true
-	var h = int(grid_size/2)
-	ends[h][h] = true
-	var t = int(grid_size/3)
-	ends[0][t] = true
+	var map = $Map
+	for child in map.get_children():
+		if child is Spatial:
+			var x = int(child.global_transform.origin.x/2)
+			var y = int(child.global_transform.origin.z/2)
+			ends[x][y] = true
+			grid[x][y] = END
 	
-	set_ends(ends)
+	initialize_weights()
 	
 	var a_points
-	while true:
+	var count = 0
+	#var max_removed = int(((grid_size * grid_size) / 2) * MAXEMPTY)
+	var max_removed = 250
+	while count < max_removed:
 		a_points = find_articulation_points(ends)
 		if !removable_tiles(a_points):
 			break
 		remove_random_tile(a_points)
+		count += 1
 
 """
 ====================
-is_valid
-====================
-"""
-func is_valid(row, col):
-	if row >= 0 and row < grid_size and col >= 0 and col < grid_size:
-		return true
-	return false
-
-"""
-====================
-set_ends
-====================
-"""
-func set_ends(ends):
-	for i in range(grid_size):
-		for j in range(grid_size):
-			if ends[i][j]:
-				grid[i][j] = END
-
-"""
-====================
-removable_paths
+removable_tiles
 
 Check if path array contains any points that are not articulation points
 ====================
@@ -238,12 +211,82 @@ Only removes path tiles that are not articulation points
 ====================
 """
 func remove_random_tile(ap):
-	var i = rng.randi_range(0,grid_size-1)
-	var j = rng.randi_range(0,grid_size-1)
+	var r = get_random_tile()
+	var rx = r[0]
+	var ry = r[1]
 	
-	if grid[i][j] == PATH and !ap[i][j]:
-		grid[i][j] = BLANK
-		#print("removed cell: [" + str(ri) + "][" + str(rj) + "]")
+	if grid[rx][ry] == PATH and !ap[rx][ry]:
+		grid[rx][ry] = BLANK
+
+"""
+====================
+get_random_tile
+====================
+"""
+func get_random_tile():
+	var roll = rng.randf_range(0, total_weight)
+	for x in range(grid_size):
+		for y in range(grid_size):
+			if weights[x][y] > roll:
+				return [x,y]
+	return []
+
+"""
+====================
+initialize_weights
+====================
+"""
+func initialize_weights():
+	total_weight = 0
+	weights = []
+	
+	for x in range(grid_size):
+		weights.append([])
+		for y in range(grid_size):
+			total_weight += get_roll_weight(x,y)
+			weights[x].append(total_weight)
+
+"""
+====================
+get_roll_weight
+====================
+"""
+func get_roll_weight(x : int, y : int):
+	var d = [[1,0],[0,1],[-1,0],[0,-1]]
+	var n = 0
+	for i in range(4):
+		var vx = x + d[i][0]
+		var vy = y + d[i][1]
+		
+		if !is_valid(vx,vy):
+			continue
+		
+		if grid[vx][vy] == PATH or grid[vx][vy] == END:
+			n += 1
+	
+	match n:
+		0:
+			return 0.0
+		1:
+			return 1.0
+		2:
+			return 0.4
+		3:
+			return 0.5
+		4:
+			return 0.3
+		_:
+			return 0.3
+
+"""
+====================
+is_valid
+====================
+"""
+func is_valid(row, col):
+	if row >= 0 and row < grid_size and col >= 0 and col < grid_size:
+		return true
+	return false
 
 """
 ====================
@@ -324,3 +367,14 @@ func cut_vertex(ux : int, uy : int, relevant):
 			low[ux][uy] = min(low[ux][uy], dfsNum[vx][vy])
 	
 	return [childCount, isRelevantSubtree]
+
+#"""
+#====================
+#set_ends
+#====================
+#"""
+#func set_ends(ends):
+#	for i in range(grid_size):
+#		for j in range(grid_size):
+#			if ends[i][j]:
+#				grid[i][j] = END

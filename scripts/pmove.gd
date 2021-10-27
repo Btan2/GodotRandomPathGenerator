@@ -99,7 +99,15 @@ func _physics_process(delta):
 		categorize_position()
 		jump_button()
 		check_state()
+	
+	var pos = global_transform.origin
+	$Label.text = "X: " + str(ceil(pos.x/2) + 1) + "\n" + "Y: " + str(ceil(pos.z/2) + 1)
 
+"""
+===============
+fly_move
+===============
+"""
 func fly_move():
 	var wishdir : Vector3
 	wishdir = (global_transform.basis.x * smove + global_transform.basis.y * umove + -head.camera.global_transform.basis.z * fmove).normalized()
@@ -116,6 +124,11 @@ func fly_move():
 	impact_velocity = abs(int(round(velocity[1])))
 	move_and_slide(velocity)
 
+"""
+===============
+noclip_toggle
+===============
+"""
 func noclip_toggle():
 	if state != NOCLIP:
 		jump_press = false
