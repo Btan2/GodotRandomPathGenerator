@@ -18,7 +18,8 @@ WASD - Move
 <br>
 Mouse - Look
 <br>
-<strike>P - Generate new maze</strike> [Not working yet]
+P - Generate new maze
 
 # Current Issues and TODOs
-  - Grids that have upwards of 100 cells will take several seconds to generate as no optimization has been performed yet.
+  - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
+  - Player collision is buggy
