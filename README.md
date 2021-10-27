@@ -1,7 +1,7 @@
 # Godot Random Path Generator
 Generates a randomized path that connects to various ends points. The end goal of the project is an efficient random 3D dungeon/maze generator with walls, ceilings and exit zones.
 
-The code uses the "Chiseled Random Paths" algorithm from BorisTheBrave's project: https://github.com/BorisTheBrave/chiseled-random-paths
+Path generation is heavily based on the "Chiseled Random Paths" idea from BorisTheBrave's project: https://github.com/BorisTheBrave/chiseled-random-paths
 <br>
 This script uses weighted randomization which edits the probability of specific tiles to be randomly selected (for deleting or state change). This allows for a somewhat more natural randomization if you edit the probability values right e.g. a higher probability of isolated tiles to be selected for removal.
 <br>
