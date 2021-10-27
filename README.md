@@ -13,7 +13,7 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 <img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 
-Path gen with weighted randomization
+With fog and weighted randomization:
 <br>
 <img src="https://imgur.com/yTUWto8.jpg" width="400px" height="auto">
 
