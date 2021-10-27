@@ -31,13 +31,10 @@ Weighted randomization with 10x scale:
 <img src="https://imgur.com/hUJBGs7.jpg" width="400px" height="auto">
 
 # Controls
-WASD - Move 
-<br>
-Mouse - Look
-<br>
-P - Generate new maze
+  - WASD - Move 
+  - Mouse - Look
+  - P - Generate new maze
 
 # Current Issues and TODOs
   - Requires Mono version of Godot to build/edit C# scripts
   - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
-  - Player collision is buggy
