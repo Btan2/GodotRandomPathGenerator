@@ -9,7 +9,9 @@ This project uses textures from the Pixar128 set by Pixar Animation Studios: htt
 The textures are under the Creative Commons 4.0 Attribution License: https://creativecommons.org/licenses/by/4.0/
 
 <br>
+<div>
 <img src="https://imgur.com/EBIWFST.jpg" width="200px" height="auto"><img src="https://imgur.com/MgUCGKP.jpg" width="200px" height="auto">
+  </div
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 
 With fog and weighted randomization:
