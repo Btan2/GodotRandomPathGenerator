@@ -2,6 +2,7 @@
 Generates a randomized path that connects to various ends points. The end goal of the project is an efficient random 3D dungeon/maze generator with walls, ceilings and exit zones.
 
 The code uses the "Chiseled Random Paths" algorithm from BorisTheBrave's project: https://github.com/BorisTheBrave/chiseled-random-paths
+Weighted randomization allows editing the probability of specific tiles to be randomly selected (for deleting or state change). This allows for a somewhat more natural randomization.
 
 This project is under the MIT license.
 <br>
@@ -18,13 +19,13 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 
-With fog and weighted randomization:
+Fog and weighted randomization:
 <br>
 <img src="https://imgur.com/yTUWto8.jpg" width="400px" height="auto">
 <br>
 <img src="https://imgur.com/3XbQUbQ.jpg" width="400px" height="auto">
 
-Randomized path with 10x scale:
+Weighted randomization with 10x scale:
 <br>
 <img src="https://imgur.com/hUJBGs7.jpg" width="400px" height="auto">
 
