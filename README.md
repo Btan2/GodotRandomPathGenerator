@@ -26,7 +26,7 @@ With fog and weighted randomization:
 
 Randomized path with 10x scale:
 <br>
-<img src="https://imgur.com/hUJBGs7.jpg" width="400px' height="auto">
+<img src="https://imgur.com/hUJBGs7.jpg" width="400px" height="auto">
 
 # Controls
 WASD - Move 
