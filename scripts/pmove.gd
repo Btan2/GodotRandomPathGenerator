@@ -9,10 +9,10 @@ pmove.gd
 
 onready var collider : CollisionShape = $CollisionShape
 onready var head : Spatial = $Head
-#onready var sfx : Node = $Audio
+onready var sfx : Node = $Audio
 
-const MAXSPEED : float = 6.0        # default: 32.0
-const WALKSPEED : float = 4.0       # default: 16.0
+const MAXSPEED : float = 10.0        # default: 32.0
+const WALKSPEED : float = 6.0       # default: 16.0
 const STOPSPEED : float = 10.0       # default: 10.0
 const GRAVITY : float = 80.0         # default: 80.0
 const ACCELERATE : float = 10.0      # default: 10.0
@@ -22,7 +22,7 @@ const JUMPFORCE : float = 27.0       # default: 27.0
 const AIRCONTROL : float = 0.9       # default: 0.9
 const STEPSIZE : float = 1.8         # default: 1.8
 const MAXHANG : float = 0.2          # defualt: 0.2
-const PLAYER_HEIGHT : float = 1.2    # default: 3.6
+const PLAYER_HEIGHT : float = 1.8   # default: 3.6
 const CROUCH_HEIGHT : float = 0.6    # default: 2.0
 const R_PUSH = 0.1
 
@@ -101,7 +101,7 @@ func _physics_process(delta):
 		check_state()
 	
 	var pos = global_transform.origin
-	$Label.text = "X: " + str(ceil(pos.x/2) + 1) + "\n" + "Y: " + str(ceil(pos.z/2) + 1)
+	$Label.text = "X: " + str(ceil(pos.x/6) + 1) + "\n" + "Y: " + str(ceil(pos.z/6) + 1)
 
 """
 ===============
@@ -223,11 +223,11 @@ func calc_fall_damage():
 	fall_dist = int(round(abs(prev_y - global_transform.origin[1])))
 	if fall_dist >= 20 and impact_velocity >= 45: 
 		jump_press = false
-		#sfx.play_land_hurt()
+		sfx.play_land_hurt()
 		head.parse_damage(Vector3.ONE * float(impact_velocity / 6))
 	else:
-		#if fall_dist > PLAYER_HEIGHT:
-			#sfx.play_land()
+		if fall_dist > PLAYER_HEIGHT:
+			sfx.play_land()
 		if fall_dist >= 6:
 			head.parse_damage(Vector3.ONE * float(impact_velocity / 8))
 
@@ -255,7 +255,7 @@ func jump_button():
 		jump_press = false
 		hangtime = 0.0
 		
-		#sfx.play_jump()
+		sfx.play_jump()
 		
 		# Make sure jump velocity is positive if moving down
 		if state == FALLING or velocity[1] < 0.0:

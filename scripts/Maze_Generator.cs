@@ -35,7 +35,7 @@ public class Maze_Generator : Node
     private MeshInstance floor;
     private SpatialMaterial material_redbrick;
     
-    private const int SCALE = 2;
+    private const int SCALE = 10;
     private const int WALLHEIGHT = 2;
     private const float MAXEMPTY = 1.0f;
 
@@ -87,7 +87,7 @@ public class Maze_Generator : Node
     */
     public void NewGrid()
     {
-        SetPlayerPos(Vector3.Up);
+        SetPlayerPos(Vector3.Up * 2);
         SetFloor();
         GeneratePath();
         CreateMultiMesh();
@@ -113,7 +113,7 @@ public class Maze_Generator : Node
     private void SetFloor()
     {
 
-	    floor.Scale = Vector3.One * (gridSize+1);
+	    floor.Scale = Vector3.One * (gridSize+1) * SCALE;
 	    Transform f_transform = floor.GlobalTransform;
         f_transform.origin = new Vector3(gridSize*SCALE/2f, 0f, gridSize*SCALE/2f);
         floor.GlobalTransform = f_transform;
@@ -147,8 +147,11 @@ public class Maze_Generator : Node
 		    if(map.GetChild(i) is Spatial)
             {
                 var c = map.GetChild(i) as Spatial;
-			    int x = (int)(c.GlobalTransform.origin.x/2);
-			    int y = (int)(c.GlobalTransform.origin.z/2);
+			    int x = (int)(c.GlobalTransform.origin.x);
+			    int y = (int)(c.GlobalTransform.origin.z);
+                x = Mathf.Clamp(x,0,gridSize-1);
+                y = Mathf.Clamp(y,0,gridSize-1);
+                
 			    ends[x,y] = true;
 			    grid[x,y] = Tile.END;
             }
@@ -381,7 +384,7 @@ public class Maze_Generator : Node
                         t.basis = Basis.Identity;
                         t.basis = t.basis.Rotated(new Vector3(1,0,0), Mathf.Deg2Rad(-90));
                         t.basis = t.basis.Rotated(new Vector3(0,1,0), Mathf.Deg2Rad(r[i]));
-                        t.origin = new Vector3(p[i,0], WALLHEIGHT, p[i, 1]) + new Vector3(x, 0, y) * SCALE;
+                        t.origin = new Vector3(p[i,0], WALLHEIGHT, p[i, 1]) * SCALE/2  + new Vector3(x, 0, y) * SCALE;
                         transformArray.Add(t);
                     }
                 }

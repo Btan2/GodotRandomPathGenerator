@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/bkg_darkness.ogg-2a7cee5cf13f968c5dd19cf45c808bbe.oggstr"
+
+[deps]
+
+source_file="res://audio/bkg_darkness.ogg"
+dest_files=[ "res://.import/bkg_darkness.ogg-2a7cee5cf13f968c5dd19cf45c808bbe.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0
