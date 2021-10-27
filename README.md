@@ -19,15 +19,17 @@ This project uses textures from the Pixar128 set by Pixar Animation Studios: htt
 <br>
 The textures are under the Creative Commons 4.0 Attribution License: https://creativecommons.org/licenses/by/4.0/
 <br>
+<br>
 
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
-
+<br>
 Fog and weighted randomization:
 <br>
-<img src="https://imgur.com/yTUWto8.jpg" width="400px" height="auto">
-<br>
-<img src="https://imgur.com/3XbQUbQ.jpg" width="400px" height="auto">
-
+<div>
+  <img src="https://imgur.com/yTUWto8.jpg" width="400px" height="auto">
+  &nbsp
+  <img src="https://imgur.com/3XbQUbQ.jpg" width="400px" height="auto">
+</div>
 Weighted randomization with 10x scale:
 <br>
 <img src="https://imgur.com/hUJBGs7.jpg" width="400px" height="auto">
