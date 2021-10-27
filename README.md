@@ -21,9 +21,10 @@ The textures are under the Creative Commons 4.0 Attribution License: https://cre
 <br>
 <br>
 
+Standard random chisel path:
 <img src="https://imgur.com/5XJuvQF.jpg" width="400px" height="auto">
 <br>
-Fog and weighted randomization:
+Weighted randomization:
 <br>
 <div>
   <img src="https://imgur.com/yTUWto8.jpg" width="400px" height="auto">
