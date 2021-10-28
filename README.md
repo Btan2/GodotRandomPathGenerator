@@ -13,6 +13,9 @@ Path generation is heavily based on the "Chiseled Random Paths" idea from BorisT
 This script incorporates weighted randomization which sets the probability of specific tiles to be randomly selected (for deleting or state change). This allows for a somewhat more natural randomization if you edit the probability values right e.g. a higher probability of isolated tiles to be selected for removal.
 <br>
 <br>
+Image reading functionality has been added. Map images can be used to create semi-random environments. Images must only contain white and black values and have full alpha; any given pixel colour value must be either rgba(255,255,255,255) or rgba(0,0,0,255). Images must be in .png format. You can use MS Paint or any other drawing program to create maps. Image size must be relatively small as the dimensions reflect the grid size e.g. 40px = 40 rows/columns = 800 cells. Large images will probably crash.
+<br>
+<br>
 This project is under the MIT license.
 <br>
 This project uses textures from the Pixar128 set by Pixar Animation Studios: https://renderman.pixar.com/pixar-one-twenty-eight
