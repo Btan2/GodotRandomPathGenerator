@@ -21,17 +21,27 @@ fov = 90.0
 shape = SubResource( 1 )
 
 [node name="Label" type="Label" parent="."]
+visible = false
 margin_right = 40.0
 margin_bottom = 14.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( 1827.18, 91.1831 )
+scale = Vector2( 5, 5 )
+z_as_relative = false
+
 [node name="Audio" type="Node" parent="."]
 script = ExtResource( 3 )
 
 [node name="FeetFX" type="AudioStreamPlayer" parent="Audio"]
+bus = "Feet"
 
 [node name="JumpFX" type="AudioStreamPlayer" parent="Audio"]
+volume_db = -5.0
+bus = "Feet"
 
 [node name="EnvFX" type="AudioStreamPlayer" parent="Audio"]
+bus = "Feet"

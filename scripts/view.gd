@@ -319,7 +319,7 @@ func shake(easing : int):
 	
 	shaketime += deltaTime 
 	
-	easing = clamp(easing, 0, 2)
+	easing = int(clamp(easing, 0, 2))
 	if easing == 0: # No shake easing
 		s_scale = 1.0
 	elif easing == 1: # Ease off scaling towards the end of the shake

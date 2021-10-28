@@ -30,17 +30,24 @@ using System.Collections.Generic;
 
 public class Maze_Generator : Node
 {
+    private float[] PROBABILITY = new float[6]
+    {
+        0.9f, // 0 Neighbours 
+        0.8f, // 1 Neighbour
+        0.5f, // 2 Neighbours
+        0.3f, // 3 Neighbours
+        0.2f, // 4 Neighbours
+        0.2f, // DEFAULT
+        };
+
     private RandomNumberGenerator rng;
-    private KinematicBody player;
-    private MeshInstance floor;
     private SpatialMaterial material_redbrick;
-    
     private const int SCALE = 10;
     private const int WALLHEIGHT = 2;
-    private const float MAXEMPTY = 1.0f;
 
-    private int num = 1;  
-    private int gridSize = 40;
+    private int num = 1;
+    private int width;
+    private int height;
     private float totalWeight = 0;
     private float[,] weights;
     private int[,] low;
@@ -48,8 +55,15 @@ public class Maze_Generator : Node
     private bool[,] isArticulation;
 
     private enum Tile {BLANK, PATH, END};
-    
-    private Tile[,] grid;   
+
+    private Tile[,] grid;
+    private bool[,] ends;
+
+    private List<Texture> maps;
+
+    //Debug stuff
+    private string mapName = "";
+
 
     /*
     ==================
@@ -59,11 +73,11 @@ public class Maze_Generator : Node
     public override void _Ready()
     {
         rng = new RandomNumberGenerator();
-        rng.Randomize();       
-        player = GetNode("Player") as KinematicBody;
-        floor = GetNode("Map/Floor") as MeshInstance;
+        rng.Randomize();
         material_redbrick = ResourceLoader.Load("res://Mat_RedBricks.tres") as SpatialMaterial;
-        
+
+        LoadMaps();
+
         NewGrid();
     }
 
@@ -81,42 +95,124 @@ public class Maze_Generator : Node
     }
 
     /*
+    ==================
+    LoadMaps
+    ==================
+    */
+    private void LoadMaps()
+    {
+        maps = new List<Texture>();
+
+        var dir = new Directory();
+        dir.Open("res://maps/");
+		dir.ListDirBegin();
+		string file = dir.GetNext();
+        
+		while(file != "")
+        {
+            if (file.EndsWith(".png"))
+            {
+                maps.Add(ResourceLoader.Load("res://maps/" + file) as Texture);
+            }
+
+			file = dir.GetNext();
+        }
+    }
+
+    /*
     ====================
     NewGrid
     ====================
     */
     public void NewGrid()
     {
-        SetPlayerPos(Vector3.Up * 2);
-        SetFloor();
-        GeneratePath();
+        GenerateMap();
         CreateMultiMesh();
-    }
-
-    /*
-    ====================
-    SetPlayerPos
-    ====================
-    */
-    public void SetPlayerPos(Vector3 pos)
-    {
+        
+        // Set player position
+        KinematicBody player;
+        player = GetNode("Player") as KinematicBody;
         Transform t = player.GlobalTransform;
-        t.origin = pos;
+        t.origin = Vector3.Up * 2;
         player.GlobalTransform = t;
+
+        // Set floor scale and position
+        MeshInstance floor;
+        floor = GetNode("Floor") as MeshInstance;
+        floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
+	    Transform f_transform = floor.GlobalTransform;
+        f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
+        floor.GlobalTransform = f_transform;
     }
 
     /*
     ====================
-    SetFloor
+    GenerateMap
     ====================
     */
-    private void SetFloor()
+    private void GenerateMap()
     {
+        Texture map = maps[rng.RandiRange(0,maps.Count-1)];        
+        Image img = map.GetData();
+        ReadImageMap(img);
 
-	    floor.Scale = Vector3.One * (gridSize+1) * SCALE;
-	    Transform f_transform = floor.GlobalTransform;
-        f_transform.origin = new Vector3(gridSize*SCALE/2f, 0f, gridSize*SCALE/2f);
-        floor.GlobalTransform = f_transform;
+        mapName = map.ResourcePath;
+        Label label = GetNode("Label") as Label;
+        label.Text = mapName;
+
+        // The end of filename determines the number of tiles to remove during path generation.
+        string[] mString = map.ResourcePath.Split("/");
+        string mName = mString[mString.Length-1];       
+
+        if(mName.Contains("_"))
+        {
+            string subString = mName.Substring(mName.IndexOf("_"));
+            subString = subString.Substring(1, subString.IndexOf(".")-1);
+            GeneratePath(true, subString.ToInt());          
+        }
+        else
+        {
+            GeneratePath(false, 0);
+        }
+    }
+
+    /*
+    ====================
+    ReadImageMap
+
+    Setup grid from image pixel array
+    ====================
+    */
+    public void ReadImageMap(Image img)
+    {
+        img.Lock();
+
+        width = (int)img.GetWidth();
+        height = (int)img.GetHeight();
+        grid = new Tile[width,height];
+        ends = new bool[width,height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Color pixel = img.GetPixel(i,j);
+                if (pixel == Colors.White)
+                {
+                    // PATH
+                    ends[i,j] = false;
+                    grid[i,j] = Tile.PATH;
+                }
+                if (pixel == Colors.Black)
+                {
+                    // END
+                    ends[i,j] = true;
+                    grid[i,j] = Tile.END;
+                }
+            }
+        }
+
+        img.Unlock();
     }
 
     /*
@@ -124,75 +220,39 @@ public class Maze_Generator : Node
     GeneratePath
     ====================
     */
-    private void GeneratePath()
+    private void GeneratePath(bool chisel, int maxCount)
     {
-        bool[,] ends = new bool[gridSize,gridSize];
-        grid = new Tile[gridSize,gridSize]; 
-
-        for(int x = 0; x < gridSize; x++)
-        {
-            for(int y = 0; y < gridSize; y++)
-            {
-                grid[x,y] = Tile.PATH;
-                ends[x,y] = false;
-            }
-        }
-
         ends[0,0] = true;
         grid[0,0] = Tile.END;
 
-        Node map = GetNode("Map");
-        for(int i = 0; i < map.GetChildCount(); i++)
-        {            
-		    if(map.GetChild(i) is Spatial)
-            {
-                var c = map.GetChild(i) as Spatial;
-			    int x = (int)(c.GlobalTransform.origin.x);
-			    int y = (int)(c.GlobalTransform.origin.z);
-                x = Mathf.Clamp(x,0,gridSize-1);
-                y = Mathf.Clamp(y,0,gridSize-1);
-                
-			    ends[x,y] = true;
-			    grid[x,y] = Tile.END;
-            }
+        if (!chisel)
+        {
+            return;
         }
 
-                
+        // Chisel the grid and add random pathways
         int count = 0;
-
-        // var max_ends = (int)(gridSize*gridSize)/2;
-        // while(count < max_ends)
-        // {
-        //     InitializeWeights();
-
-        //     int[] r = GetRandomTile();
-        //     if (r.Length <= 0)
-        //     {
-        //         continue;
-        //     }
-        //     // Pick random weighted ends
-        //     if(grid[r[0],r[1]] != Tile.END)
-        //     {
-        //         ends[r[0],r[1]] = true;
-        //         grid[r[0],r[1]] = Tile.END;
-        //         count++;
-        //     }
-        // }
-
-        bool[,] aPoints;        
-        while(count < (gridSize*gridSize/2))
+        bool[,] aPoints;
+        while(true)
         {
-            InitializeWeights();
-
             aPoints = FindArticulationPoints(ends);
             if(!RemovableTiles(aPoints))
             {
                 break;
             }
-            
+
+            InitializeWeights();
             RemoveRandomTile(aPoints);
 
-            count++;
+            if (maxCount > 0)
+            {
+                if (count > maxCount)
+                {
+                    break;
+                }
+
+                count++;
+            }            
         }
     }
 
@@ -203,9 +263,9 @@ public class Maze_Generator : Node
     */
     private bool RemovableTiles(bool[,] aPoints)
     {
-        for(int x = 0; x < gridSize; x++)
+        for(int x = 0; x < width; x++)
         {
-            for(int y = 0; y < gridSize; y++)
+            for(int y = 0; y < height; y++)
             {
                 if(grid[x,y] == Tile.PATH && !aPoints[x,y])
                 {
@@ -227,8 +287,6 @@ public class Maze_Generator : Node
         int[] r = GetRandomTile();
         int rx = r[0];
         int ry = r[1];
-        //int rx = rng.RandiRange(0,gridSize-1);
-        //int ry = rng.RandiRange(0,gridSize-1);
 
         if (grid[rx,ry] == Tile.PATH && !aPoints[rx,ry])
         {
@@ -239,19 +297,24 @@ public class Maze_Generator : Node
     /*
     ==================
     GetRandomTile
+
+    Get random tile using weights
     ==================
     */
     private int[] GetRandomTile()
     {
-        float roll = rng.RandfRange(0f, totalWeight);
-        for(int x = 0; x < gridSize; x++)
+        float rand = rng.RandfRange(0f, totalWeight);
+
+        for(int x = 0; x < width; x++)
         {
-            for(int y = 0; y < gridSize; y++)
+            for(int y = 0; y < height; y++)
             {
-                if(weights[x,y] > roll)
+                if(rand < weights[x,y])
                 {
                     return new int[]{x,y};
                 }
+
+                rand -= weights[x,y];
             }
         }
 
@@ -265,15 +328,18 @@ public class Maze_Generator : Node
     */
     private void InitializeWeights()
     {
-        totalWeight = 0f;
-        weights = new float[gridSize, gridSize];
+        int[,] d = new int[,]{{1,0},{0,1},{-1,0},{0,-1}};
 
-        for(int x = 0; x < gridSize; x++)
+        totalWeight = 0f;
+
+        weights = new float[width, height];
+        for(int x = 0; x < width; x++)
         {
-            for(int y = 0; y < gridSize; y++)
+            for(int y = 0; y < height; y++)
             {
-                totalWeight += GetRollWeight(x,y);
-                weights[x,y] = totalWeight;
+                float roll = GetRollWeight(x,y,d);
+                weights[x,y] = roll;
+                totalWeight += roll;
             }
         }
     }
@@ -282,46 +348,33 @@ public class Maze_Generator : Node
     ====================
     GetRollWeight
 
-    Calculates and returns probability of a tile being
+    Returns probability of a tile being
     randomly selected based on its neighbour count
     ====================
     */
-    private float GetRollWeight(int x, int y)
+    private float GetRollWeight(int x, int y, int[,] d)
     {
-        int[,] d = new int[,]{{1,0},{0,1},{-1,0},{0,-1}};
         int n = 0;
         for(int i = 0; i < 4; i++)
         {
             int vx = x + d[i,0];
             int vy = y + d[i,1];
 
-            if(!IsValid(vx,vy))
+            if(!IsValid(vx,vy) || grid[vx,vy] == Tile.BLANK)
             {
                 continue;
             }
-            
-            // Add to neighbour count
-            if(grid[vx,vy] != Tile.BLANK)
-            {
-                n++;
-            }
+
+            n++;
         }
 
-        switch(n)
+        int pLength = PROBABILITY.Length;
+        if (n > pLength)
         {
-            case 0:
-                return 0.0f;
-            case 1:
-                return 1.0f;
-            case 2:
-                return 0.4f;
-            case 3:
-                return 0.5f;
-            case 4:
-                return 0.3f;
-            default:
-                return 0.3f;
+            return PROBABILITY[pLength-1];
         }
+
+        return PROBABILITY[n];
     }
 
     /*
@@ -334,19 +387,22 @@ public class Maze_Generator : Node
     private void CreateMultiMesh()
     {
         // Remove every multi-mesh instance before creating a new one
-        foreach(Node c in GetChildren())
+        for(int i = 0; i < GetChildCount(); i ++)
         {
+            Node c = GetChild(i);
+
             if(c is MultiMeshInstance)
             {
                 RemoveChild(c);
                 c.QueueFree();
+
             }
         }
 
         PlaneMesh mesh = new PlaneMesh();
         mesh.Size = new Vector2(1,WALLHEIGHT) * SCALE;
         mesh.SurfaceSetMaterial(0, material_redbrick);
-        
+
         MultiMesh multiMesh = new MultiMesh();
         multiMesh.TransformFormat = MultiMesh.TransformFormatEnum.Transform3d;
         multiMesh.ColorFormat = MultiMesh.ColorFormatEnum.None;
@@ -359,9 +415,9 @@ public class Maze_Generator : Node
         int[,] p = {{1,0},{0,1},{-1,0},{0,-1}};
         List<Transform> transformArray = new List<Transform>();
 
-        for(int x= 0; x < gridSize; x++)
+        for(int x= 0; x < width; x++)
         {
-            for(int y=0; y < gridSize; y++)
+            for(int y=0; y < height; y++)
             {
                 if(grid[x,y] == Tile.BLANK)
                 {
@@ -417,7 +473,7 @@ public class Maze_Generator : Node
     */
     private bool IsValid(int x, int y)
     {
-        return x >= 0 && x < gridSize && y >= 0 && y < gridSize;
+        return x >= 0 && x < width && y >= 0 && y < height;
     }
 
     /*
@@ -428,13 +484,13 @@ public class Maze_Generator : Node
     private bool[,] FindArticulationPoints(bool[,] relevant)
     {
         num = 1;
-        low = new int[gridSize, gridSize];
-        dfsNum = new int[gridSize, gridSize];
-        isArticulation = new bool[gridSize, gridSize];
+        low = new int[width, height];
+        dfsNum = new int[width, height];
+        isArticulation = new bool[width, height];
 
-        for (int x = 0; x < gridSize; x++)
+        for (int x = 0; x < width; x++)
         {
-            for (int y= 0; y < gridSize; y++)
+            for (int y= 0; y < height; y++)
             {
                 isArticulation[x,y] = false;
 
@@ -464,7 +520,6 @@ public class Maze_Generator : Node
 
         return isArticulation;
     }
-
 
     /*
     ===============

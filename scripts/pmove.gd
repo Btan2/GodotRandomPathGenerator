@@ -18,7 +18,7 @@ const GRAVITY : float = 80.0         # default: 80.0
 const ACCELERATE : float = 10.0      # default: 10.0
 const AIRACCELERATE : float = 0.25   # default: 0.7
 const MOVEFRICTION : float = 6.0     # default: 6.0
-const JUMPFORCE : float = 27.0       # default: 27.0
+const JUMPFORCE : float = 20.0       # default: 27.0
 const AIRCONTROL : float = 0.9       # default: 0.9
 const STEPSIZE : float = 1.8         # default: 1.8
 const MAXHANG : float = 0.2          # defualt: 0.2
@@ -100,8 +100,8 @@ func _physics_process(delta):
 		jump_button()
 		check_state()
 	
-	var pos = global_transform.origin
-	$Label.text = "X: " + str(ceil(pos.x/6) + 1) + "\n" + "Y: " + str(ceil(pos.z/6) + 1)
+	#var pos = global_transform.origin
+	#$Label.text = "X: " + str(ceil(pos.x/6) + 1) + "\n" + "Y: " + str(ceil(pos.z/6) + 1)
 
 """
 ===============
@@ -133,7 +133,7 @@ func noclip_toggle():
 	if state != NOCLIP:
 		jump_press = false
 		crouch_press = false
-		collider.shape.height == PLAYER_HEIGHT
+		#collider.shape.height == PLAYER_HEIGHT
 		head.y_offset = collider.shape.height * 0.35
 		state = NOCLIP
 	else:
