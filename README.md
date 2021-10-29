@@ -42,7 +42,13 @@ Weighted randomization with 10x scale:
 # Controls
   - WASD - Move 
   - Mouse - Look
-  - P - Generate new maze
+  - ` - Open console
+    - "map restart" - Regen map
+    - "map list" - Show maps available to load
+    - "map mapname_9.png" - Load map
+    - "console_speed x" - Console window open/close speed (x)
+    - "console_height x" - Console window screen height
+    - "console_texture random" - Randomize console background texture
 
 # Current Issues and TODOs
   - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
