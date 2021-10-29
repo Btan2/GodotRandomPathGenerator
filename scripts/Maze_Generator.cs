@@ -35,7 +35,7 @@ public class Maze_Generator : Node
         0.9f, // 0 Neighbours 
         0.8f, // 1 Neighbour
         0.5f, // 2 Neighbours
-        0.3f, // 3 Neighbours
+        0.4f, // 3 Neighbours
         0.2f, // 4 Neighbours
         0.2f, // DEFAULT
         };
@@ -44,7 +44,6 @@ public class Maze_Generator : Node
     private SpatialMaterial material_redbrick;
     private const int SCALE = 10;
     private const int WALLHEIGHT = 2;
-
     private int num = 1;
     private int width;
     private int height;
@@ -54,16 +53,17 @@ public class Maze_Generator : Node
     private int[,] dfsNum;
     private bool[,] isArticulation;
 
-    private enum Tile {BLANK, PATH, END};
+    private enum Tile {BLANK, PATH, END, START, EXIT};
 
     private Tile[,] grid;
     private bool[,] ends;
 
-    private List<Texture> maps;
-
-    //Debug stuff
+    private Texture[] maps;
+    private string[] mapNames;
     private string mapName = "";
 
+    private int[] start;
+    private int[] exit;
 
     /*
     ==================
@@ -74,24 +74,10 @@ public class Maze_Generator : Node
     {
         rng = new RandomNumberGenerator();
         rng.Randomize();
-        material_redbrick = ResourceLoader.Load("res://Mat_RedBricks.tres") as SpatialMaterial;
 
-        LoadMaps();
+        material_redbrick = ResourceLoader.Load("res://materials/Material_RedBricks.tres") as SpatialMaterial;
 
-        NewGrid();
-    }
-
-    /*
-    ==================
-    _Input
-    ==================
-    */
-    public override void _Input(InputEvent @event)
-    {
-        if(Input.IsKeyPressed((int)KeyList.P))
-        {
-            NewGrid();
-        }
+        LoadMaps();   
     }
 
     /*
@@ -101,7 +87,8 @@ public class Maze_Generator : Node
     */
     private void LoadMaps()
     {
-        maps = new List<Texture>();
+        List<Texture> mImgs = new List<Texture>();
+        List<String> mNames = new List<string>();
 
         var dir = new Directory();
         dir.Open("res://maps/");
@@ -112,33 +99,133 @@ public class Maze_Generator : Node
         {
             if (file.EndsWith(".png"))
             {
-                maps.Add(ResourceLoader.Load("res://maps/" + file) as Texture);
+                mImgs.Add(ResourceLoader.Load("res://maps/" + file) as Texture);
+                mNames.Add(file.ToLower());
             }
 
 			file = dir.GetNext();
+        }
+
+        maps = mImgs.ToArray();
+        mImgs.Clear();
+
+        mapNames = mNames.ToArray();   
+        mNames.Clear();
+    }
+
+    /*
+    ====================
+    AddToConsole
+    ====================
+    */      
+    private void AddToConsole(string s)
+    {
+        (GetParent() as console).AddToConsole(s);
+    }
+
+    /*
+    ====================
+    PrintMapNames
+    ====================
+    */
+    public void PrintMapNames()
+    {
+        AddToConsole(":::Map List:::");
+        for(int i =0; i < mapNames.Length; i++)
+        {
+            AddToConsole(mapNames[i]);
         }
     }
 
     /*
     ====================
-    NewGrid
+    GetMapFromName
     ====================
     */
-    public void NewGrid()
+    public int GetMapFromName(string s)
     {
-        GenerateMap();
-        CreateMultiMesh();
-        
+        for(int i = 0; i < mapNames.Length; i++)
+        {
+            if(s == mapNames[i])
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /*
+    ====================
+    GetMapName
+    ====================
+    */
+    public string GetMapName()
+    {
+        return mapName;
+    }
+
+    /*
+    ====================
+    GetMap
+    ====================
+    */      
+    private Texture GetMap(string s)
+    {
+        int mapIndex = GetMapFromName(s);
+
+        if(mapIndex >= 0)
+        {
+            mapName = s;
+            return maps[mapIndex];
+        }
+        else if(s == "random")
+        {
+            int rand = rng.RandiRange(0,maps.Length-1);
+            mapName = mapNames[rand];
+            return maps[rand];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /*
+    ====================
+    StartMap
+
+    Starts a new map
+    ====================
+    */
+    public void StartMap(string s)
+    {
+        Texture map = GetMap(s);
+
+        if(map == null)
+        {
+            AddToConsole(":::Cannot load map (does it exist?):::");
+            return;
+        }
+
+        AddToConsole("GOT MAP: " + mapName);
+        AddToConsole("");
+        AddToConsole("Generating new map........");
+        AddToConsole("--------------------------");        
+       
+        GenerateMap(map);         
+        CreateMultiMesh();      
+                
         // Set player position
         KinematicBody player;
-        player = GetNode("Player") as KinematicBody;
+        player = GetParent().GetNode("Player") as KinematicBody;
         Transform t = player.GlobalTransform;
-        t.origin = Vector3.Up * 2;
+        t.origin = Vector3.Up * 4;
         player.GlobalTransform = t;
 
         // Set floor scale and position
         MeshInstance floor;
-        floor = GetNode("Floor") as MeshInstance;
+        floor = GetParent().GetNode("Floor") as MeshInstance;
         floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
 	    Transform f_transform = floor.GlobalTransform;
         f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
@@ -150,30 +237,25 @@ public class Maze_Generator : Node
     GenerateMap
     ====================
     */
-    private void GenerateMap()
-    {
-        Texture map = maps[rng.RandiRange(0,maps.Count-1)];        
+    private void GenerateMap(Texture map)
+    {        
         Image img = map.GetData();
         ReadImageMap(img);
-
-        mapName = map.ResourcePath;
-        Label label = GetNode("Label") as Label;
-        label.Text = mapName;
-
-        // The end of filename determines the number of tiles to remove during path generation.
-        string[] mString = map.ResourcePath.Split("/");
-        string mName = mString[mString.Length-1];       
-
-        if(mName.Contains("_"))
+        
+        // The end of filename determines the number of tiles to remove during path generation.       
+        if(!mapName.Contains("_"))
         {
-            string subString = mName.Substring(mName.IndexOf("_"));
-            subString = subString.Substring(1, subString.IndexOf(".")-1);
-            GeneratePath(true, subString.ToInt());          
-        }
-        else
-        {
+            AddToConsole("MAP: 0 tiles removed..");
             GeneratePath(false, 0);
         }
+        else
+        {   
+            string subString = mapName.Substring(mapName.IndexOf("_"));
+            subString = subString.Substring(1, subString.IndexOf(".")-1);
+
+            AddToConsole("MAP: " + subString + " tiles removed..");
+            GeneratePath(true, subString.ToInt());    
+        }      
     }
 
     /*
@@ -222,8 +304,13 @@ public class Maze_Generator : Node
     */
     private void GeneratePath(bool chisel, int maxCount)
     {
+        start = new int[2]{0,0};
+        exit = new int[2]{width-1, height-1};
+        
         ends[0,0] = true;
-        grid[0,0] = Tile.END;
+        grid[0,0] = Tile.START;
+        ends[exit[0], exit[1]] = true;               
+        grid[exit[0], exit[1]] = Tile.EXIT;        
 
         if (!chisel)
         {

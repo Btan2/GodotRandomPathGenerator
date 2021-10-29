@@ -24,6 +24,12 @@ SOFTWARE.
 Source: https://github.com/BorisTheBrave/chiseled-random-paths
 """
 
+"""
+
+!!!!!!!    WARNING: REDUNDANT CODE, USE C# SCRIPT INSTEAD    !!!!!!!
+
+"""
+
 extends Node
 
 onready var material_redbrick = preload("res://Mat_RedBricks.tres")

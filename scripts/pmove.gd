@@ -92,6 +92,9 @@ _physics_process
 func _physics_process(delta):
 	deltaTime = delta
 	
+	if get_tree().paused:
+		return;
+	
 	if state == NOCLIP:
 		fly_move()
 	else:

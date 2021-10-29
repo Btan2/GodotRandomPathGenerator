@@ -1,0 +1,119 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://scripts/console.cs" type="Script" id=1]
+[ext_resource path="res://textures/Loading_Symbol_0.png" type="Texture" id=2]
+[ext_resource path="res://fonts/Console_Font.tres" type="DynamicFont" id=3]
+[ext_resource path="res://shaders/Snow_Squares.shader" type="Shader" id=4]
+[ext_resource path="res://textures/console/Tiles072.jpg" type="Texture" id=5]
+
+[sub_resource type="StyleBoxEmpty" id=1]
+
+[sub_resource type="StyleBoxEmpty" id=2]
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = ExtResource( 4 )
+shader_param/color = Color( 0, 0.768627, 0.101961, 1 )
+shader_param/brightness = 0.5
+shader_param/contrast = 1.0
+shader_param/saturation = 1.0
+
+[sub_resource type="Shader" id=4]
+code = "shader_type canvas_item;
+
+uniform vec4 color : hint_color;
+uniform sampler2D m_texture;
+uniform float solid = 1.0;
+uniform float brightness = 1.0;
+uniform float contrast = 1.0;
+uniform float saturation = 1.0;
+uniform float transparency = 1.0;
+
+void fragment(){
+	float ratio = SCREEN_PIXEL_SIZE.x/SCREEN_PIXEL_SIZE.y;
+	vec2 uv = (SCREEN_UV - vec2(0.5)) / vec2(ratio, 1.0);
+	vec3 col = texture(m_texture, uv).rgb;
+	col = mix(color.rgb, col, solid);
+	col = mix(vec3(0.0), col, brightness);
+	col = mix(vec3(0.5), col, contrast);
+	col = mix(vec3(dot(vec3(1.0), col) * 0.33333), col, saturation);
+	COLOR = vec4(col, transparency);
+}"
+
+[sub_resource type="ShaderMaterial" id=5]
+shader = SubResource( 4 )
+shader_param/color = Color( 0.827451, 0.109804, 0.109804, 1 )
+shader_param/solid = 0.35
+shader_param/brightness = 1.0
+shader_param/contrast = 1.0
+shader_param/saturation = 1.0
+shader_param/transparency = 0.58
+shader_param/m_texture = ExtResource( 5 )
+
+[node name="Console" type="Node2D"]
+z_index = 10
+script = ExtResource( 1 )
+
+[node name="Console_Text" type="Label" parent="."]
+anchor_top = -0.038
+anchor_bottom = -0.038
+margin_top = -1110.0
+margin_right = 1920.0
+margin_bottom = -30.0
+grow_vertical = 0
+size_flags_horizontal = 0
+size_flags_vertical = 2
+custom_fonts/font = ExtResource( 3 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "Trails of the Abyss v0.01"
+valign = 2
+clip_text = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Console_Input" type="LineEdit" parent="."]
+margin_top = -26.0
+margin_right = 1920.0
+size_flags_horizontal = 8
+custom_styles/focus = SubResource( 1 )
+custom_styles/normal = SubResource( 2 )
+custom_fonts/font = ExtResource( 3 )
+custom_colors/selection_color = Color( 1, 0.890196, 0, 1 )
+custom_colors/cursor_color = Color( 1, 0.890196, 0, 1 )
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "aaa"
+max_length = 124
+context_menu_enabled = false
+shortcut_keys_enabled = false
+caret_blink = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Squares" type="Sprite" parent="."]
+material = SubResource( 3 )
+scale = Vector2( 1, -1 )
+z_index = -1
+texture = ExtResource( 2 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 1920, 1080 )
+
+[node name="Color" type="ColorRect" parent="."]
+material = SubResource( 5 )
+margin_right = 1920.0
+margin_bottom = 1080.0
+rect_scale = Vector2( 1, -1 )
+color = Color( 0.0352941, 0.192157, 0.0705882, 0.729412 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Console_Footer" type="ColorRect" parent="."]
+margin_right = 1920.0
+margin_bottom = 4.0
+color = Color( 0.878431, 0.545098, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

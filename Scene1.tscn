@@ -1,11 +1,16 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/Maze_Generator.cs" type="Script" id=2]
-[ext_resource path="res://Material_Floor.tres" type="Material" id=3]
+[ext_resource path="res://materials/Material_Floor.tres" type="Material" id=3]
 [ext_resource path="res://textures/RooftilesMetal.jpg" type="Texture" id=4]
 [ext_resource path="res://audio/bkg_darkness.ogg" type="AudioStream" id=5]
 [ext_resource path="res://textures/Wood067_1K_Color.jpg" type="Texture" id=6]
+[ext_resource path="res://textures/console/console_noise.jpg" type="Texture" id=7]
+[ext_resource path="res://scripts/console.cs" type="Script" id=8]
+[ext_resource path="res://shaders/Snow_Squares.shader" type="Shader" id=10]
+[ext_resource path="res://fonts/Console_Font.tres" type="DynamicFont" id=11]
+[ext_resource path="res://textures/console/Tiles074.jpg" type="Texture" id=12]
 
 [sub_resource type="PlaneMesh" id=1]
 
@@ -21,7 +26,7 @@ fog_enabled = true
 fog_color = Color( 0, 0, 0, 1 )
 fog_sun_color = Color( 0, 0, 0, 1 )
 fog_depth_begin = 0.0
-fog_depth_end = 40.0
+fog_depth_end = 65.0
 fog_depth_curve = 0.34151
 fog_height_enabled = true
 fog_height_min = 0.0
@@ -45,10 +50,63 @@ uv1_offset = Vector3( 0.215, -0.028, -0.184 )
 uv2_scale = Vector3( 0.988, 1.021, 0.99 )
 uv2_offset = Vector3( 0.03, -0.058, 0 )
 
-[node name="Spatial" type="Spatial"]
+[sub_resource type="StyleBoxEmpty" id=8]
+
+[sub_resource type="StyleBoxEmpty" id=9]
+
+[sub_resource type="ShaderMaterial" id=10]
+shader = ExtResource( 10 )
+shader_param/color = Color( 0.2, 0.854902, 0.192157, 1 )
+shader_param/solid_color = 1.0
+shader_param/brightness = 0.25
+shader_param/contrast = 1.0
+shader_param/saturation = 1.0
+shader_param/transparency = 1.0
+shader_param/square_alpha = 1.25
+shader_param/texture_alpha = 0.5
+
+[sub_resource type="Shader" id=11]
+code = "shader_type canvas_item;
+
+uniform vec4 color : hint_color;
+uniform float solid = 1.0;
+uniform float brightness = 1.0;
+uniform float contrast = 1.0;
+uniform float saturation = 1.0;
+uniform float square_alpha = 1.0;
+uniform float texture_alpha = 1.0;
+
+void fragment(){
+	float ratio = SCREEN_PIXEL_SIZE.x/SCREEN_PIXEL_SIZE.y;
+	vec2 uv = (SCREEN_UV - vec2(0.5)) / vec2(ratio, 1.0);
+	vec3 col = texture(TEXTURE, uv).rgb;
+	col = mix(color.rgb, col, 1.0 - solid);
+	col = mix(vec3(0.0), col, brightness);
+	col = mix(vec3(0.5), col, contrast);
+	col = mix(vec3(dot(vec3(1.0), col) * 0.33333), col, saturation);
+	COLOR = vec4(col, square_alpha);
+}"
+
+[sub_resource type="ShaderMaterial" id=12]
+shader = SubResource( 11 )
+shader_param/color = Color( 0.054902, 1, 0, 1 )
+shader_param/solid = 0.42
+shader_param/brightness = 0.35
+shader_param/contrast = 1.0
+shader_param/saturation = 0.75
+shader_param/square_alpha = 0.65
+shader_param/texture_alpha = 1.0
+
+[node name="ROOT" type="Spatial"]
+pause_mode = 2
+script = ExtResource( 8 )
+
+[node name="Map" type="Node" parent="."]
+pause_mode = 2
 script = ExtResource( 2 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
+pause_mode = 1
 
 [node name="Floor" type="MeshInstance" parent="."]
 transform = Transform( 40, 0, 0, 0, 40, 0, 0, 0, 40, 38.0047, 0, 38.0047 )
@@ -74,34 +132,99 @@ stream = ExtResource( 5 )
 volume_db = -20.913
 autoplay = true
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
+[node name="START" type="Spatial" parent="."]
+
+[node name="MeshInstance" type="MeshInstance" parent="START"]
 transform = Transform( 4, 0, 0, 0, 2, -1.73205, 0, 3.4641, 1, 0, 13, -3 )
 mesh = SubResource( 4 )
 material/0 = SubResource( 5 )
 
-[node name="MeshInstance2" type="MeshInstance" parent="."]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 0, 12.1, -4.9 )
+[node name="MeshInstance2" type="MeshInstance" parent="START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 0, 12, -5 )
 mesh = SubResource( 6 )
 material/0 = SubResource( 7 )
 
-[node name="MeshInstance3" type="MeshInstance" parent="."]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 3, 12.1, -4.9 )
+[node name="MeshInstance3" type="MeshInstance" parent="START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 3, 12, -5 )
 mesh = SubResource( 6 )
 material/0 = SubResource( 7 )
 
-[node name="MeshInstance4" type="MeshInstance" parent="."]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 1.5, 12.1, -4.9 )
+[node name="MeshInstance4" type="MeshInstance" parent="START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 1.5, 12, -5 )
 mesh = SubResource( 6 )
 material/0 = SubResource( 7 )
 
-[node name="MeshInstance5" type="MeshInstance" parent="."]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, -2.5, 12.1, -4.9 )
+[node name="MeshInstance5" type="MeshInstance" parent="START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, -2.5, 12, -5 )
 mesh = SubResource( 6 )
 material/0 = SubResource( 7 )
 
-[node name="Label" type="Label" parent="."]
-margin_right = 40.0
-margin_bottom = 14.0
+[node name="Console" type="Node2D" parent="."]
+pause_mode = 2
+z_index = 10
+
+[node name="Console_Text" type="Label" parent="Console"]
+anchor_top = -0.038
+anchor_bottom = -0.038
+margin_top = -1110.0
+margin_right = 1920.0
+margin_bottom = -30.0
+grow_vertical = 0
+size_flags_horizontal = 0
+size_flags_vertical = 2
+custom_fonts/font = ExtResource( 11 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "Trails of the Abyss v0.01"
+valign = 2
+clip_text = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Console_Input" type="LineEdit" parent="Console"]
+margin_top = -26.0
+margin_right = 1920.0
+size_flags_horizontal = 8
+custom_styles/focus = SubResource( 8 )
+custom_styles/normal = SubResource( 9 )
+custom_fonts/font = ExtResource( 11 )
+custom_colors/selection_color = Color( 1, 0.890196, 0, 1 )
+custom_colors/cursor_color = Color( 1, 0.890196, 0, 1 )
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "aaa"
+max_length = 124
+context_menu_enabled = false
+shortcut_keys_enabled = false
+caret_blink = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Squares" type="Sprite" parent="Console"]
+material = SubResource( 10 )
+scale = Vector2( 1, -1 )
+z_index = -1
+texture = ExtResource( 7 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 1920, 1080 )
+
+[node name="Console_Footer" type="ColorRect" parent="Console"]
+margin_right = 1920.0
+margin_bottom = 4.0
+color = Color( 0.878431, 0.545098, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Console_Texture" type="Sprite" parent="Console"]
+visible = false
+material = SubResource( 12 )
+scale = Vector2( 1, -1 )
+z_index = -1
+texture = ExtResource( 12 )
+centered = false
+offset = Vector2( 0, 1 )
+region_enabled = true
+region_rect = Rect2( 0, 0, 1920, 1080 )
