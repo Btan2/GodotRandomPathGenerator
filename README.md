@@ -42,7 +42,7 @@ Weighted randomization with 10x scale:
 # Controls
   - WASD - Move 
   - Mouse - Look
-  - ` - Open console
+  - ~ - Open console
     - "map restart" - Regen map
     - "map list" - Show maps available to load
     - "map mapname_9.png" - Load map
