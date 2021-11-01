@@ -1,11 +1,16 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scripts/pmove.gd" type="Script" id=1]
 [ext_resource path="res://scripts/view.gd" type="Script" id=2]
 [ext_resource path="res://scripts/paudio.gd" type="Script" id=3]
+[ext_resource path="res://fonts/AvQest.ttf" type="DynamicFontData" id=4]
 
 [sub_resource type="CylinderShape" id=1]
 height = 1.8
+
+[sub_resource type="DynamicFont" id=2]
+size = 24
+font_data = ExtResource( 4 )
 
 [node name="Player" type="KinematicBody"]
 transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 2, 0 )
@@ -21,9 +26,14 @@ fov = 90.0
 shape = SubResource( 1 )
 
 [node name="Label" type="Label" parent="."]
-visible = false
-margin_right = 40.0
-margin_bottom = 14.0
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 405.0
+margin_bottom = 45.0
+custom_fonts/font = SubResource( 2 )
+text = "180
+N
+Position: 12321"
 __meta__ = {
 "_edit_use_anchors_": false
 }

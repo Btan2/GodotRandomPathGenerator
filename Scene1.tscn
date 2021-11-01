@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=25 format=2]
 
 [ext_resource path="res://Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/Maze_Generator.cs" type="Script" id=2]
@@ -8,9 +8,10 @@
 [ext_resource path="res://textures/Wood067_1K_Color.jpg" type="Texture" id=6]
 [ext_resource path="res://textures/console/console_noise.jpg" type="Texture" id=7]
 [ext_resource path="res://scripts/console.cs" type="Script" id=8]
+[ext_resource path="res://MasterLineDraw.gd" type="Script" id=9]
 [ext_resource path="res://shaders/Snow_Squares.shader" type="Shader" id=10]
 [ext_resource path="res://fonts/Console_Font.tres" type="DynamicFont" id=11]
-[ext_resource path="res://textures/console/Tiles074.jpg" type="Texture" id=12]
+[ext_resource path="res://materials/Material_Laser_Red.tres" type="Material" id=13]
 
 [sub_resource type="PlaneMesh" id=1]
 
@@ -65,37 +66,9 @@ shader_param/transparency = 1.0
 shader_param/square_alpha = 1.25
 shader_param/texture_alpha = 0.5
 
-[sub_resource type="Shader" id=11]
-code = "shader_type canvas_item;
+[sub_resource type="PlaneMesh" id=11]
 
-uniform vec4 color : hint_color;
-uniform float solid = 1.0;
-uniform float brightness = 1.0;
-uniform float contrast = 1.0;
-uniform float saturation = 1.0;
-uniform float square_alpha = 1.0;
-uniform float texture_alpha = 1.0;
-
-void fragment(){
-	float ratio = SCREEN_PIXEL_SIZE.x/SCREEN_PIXEL_SIZE.y;
-	vec2 uv = (SCREEN_UV - vec2(0.5)) / vec2(ratio, 1.0);
-	vec3 col = texture(TEXTURE, uv).rgb;
-	col = mix(color.rgb, col, 1.0 - solid);
-	col = mix(vec3(0.0), col, brightness);
-	col = mix(vec3(0.5), col, contrast);
-	col = mix(vec3(dot(vec3(1.0), col) * 0.33333), col, saturation);
-	COLOR = vec4(col, square_alpha);
-}"
-
-[sub_resource type="ShaderMaterial" id=12]
-shader = SubResource( 11 )
-shader_param/color = Color( 0.054902, 1, 0, 1 )
-shader_param/solid = 0.42
-shader_param/brightness = 0.35
-shader_param/contrast = 1.0
-shader_param/saturation = 0.75
-shader_param/square_alpha = 0.65
-shader_param/texture_alpha = 1.0
+[sub_resource type="CubeMesh" id=12]
 
 [node name="ROOT" type="Spatial"]
 pause_mode = 2
@@ -166,8 +139,9 @@ z_index = 10
 [node name="Console_Text" type="Label" parent="Console"]
 anchor_top = -0.038
 anchor_bottom = -0.038
+margin_left = 5.0
 margin_top = -1110.0
-margin_right = 1920.0
+margin_right = 1915.0
 margin_bottom = -30.0
 grow_vertical = 0
 size_flags_horizontal = 0
@@ -182,8 +156,9 @@ __meta__ = {
 }
 
 [node name="Console_Input" type="LineEdit" parent="Console"]
+margin_left = 5.0
 margin_top = -26.0
-margin_right = 1920.0
+margin_right = 1915.0
 size_flags_horizontal = 8
 custom_styles/focus = SubResource( 8 )
 custom_styles/normal = SubResource( 9 )
@@ -218,13 +193,27 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Console_Texture" type="Sprite" parent="Console"]
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -0.1, 0, 1, -4.37114e-09, 39, 1, 42 )
+mesh = SubResource( 11 )
+material/0 = ExtResource( 13 )
+
+[node name="MeshInstance3" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, -8.88178e-16, 0, 1.06581e-14, 0.1, 6, 2, 5 )
+mesh = SubResource( 11 )
+material/0 = ExtResource( 13 )
+
+[node name="Laser" type="Control" parent="."]
+material = ExtResource( 13 )
+margin_right = 40.0
+margin_bottom = 40.0
+script = ExtResource( 9 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MeshInstance2" type="MeshInstance" parent="."]
+transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1, 0 )
 visible = false
-material = SubResource( 12 )
-scale = Vector2( 1, -1 )
-z_index = -1
-texture = ExtResource( 12 )
-centered = false
-offset = Vector2( 0, 1 )
-region_enabled = true
-region_rect = Rect2( 0, 0, 1920, 1080 )
+mesh = SubResource( 12 )
+material/0 = null

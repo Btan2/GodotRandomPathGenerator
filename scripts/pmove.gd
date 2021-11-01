@@ -6,13 +6,12 @@ pmove.gd
 - Standard player movement controller
 - Player will slowly slide down slopes
 """
-
 onready var collider : CollisionShape = $CollisionShape
 onready var head : Spatial = $Head
 onready var sfx : Node = $Audio
 
-const MAXSPEED : float = 10.0        # default: 32.0
-const WALKSPEED : float = 6.0       # default: 16.0
+const MAXSPEED : float = 16.0        # default: 32.0
+const WALKSPEED : float = 8.0       # default: 16.0
 const STOPSPEED : float = 10.0       # default: 10.0
 const GRAVITY : float = 80.0         # default: 80.0
 const ACCELERATE : float = 10.0      # default: 10.0
@@ -103,8 +102,53 @@ func _physics_process(delta):
 		jump_button()
 		check_state()
 	
-	#var pos = global_transform.origin
-	#$Label.text = "X: " + str(ceil(pos.x/6) + 1) + "\n" + "Y: " + str(ceil(pos.z/6) + 1)
+	var c = compass();
+	$Label.text = str(c) + "\n"
+	$Label.text += "\n"
+	
+	var p = localize_position(global_transform.origin)
+	#level_bounds(p)
+	$Label.text += str(p) + "\n"
+
+func localize_position(pos : Vector3):
+	var localPos = Vector3.ZERO
+	for i in range(3):
+		localPos[i] = int(pos[i]/10 + 0.5)
+	return localPos
+
+enum CompassDir {NORTH, SOUTH, EAST, WEST}
+var global_direction = CompassDir.NORTH
+
+func compass():
+	var dir = transform.basis.z
+	var outStr = ""
+	dir.z *= -1
+	
+	if dir.z > 0.5:
+		global_direction = CompassDir.NORTH
+		outStr = CompassDir.keys()[CompassDir.NORTH] + ", "
+	elif dir.z < -0.5:
+		global_direction = CompassDir.SOUTH
+		outStr = CompassDir.keys()[CompassDir.SOUTH] + ", "
+	if dir.x > 0.5:
+		global_direction = CompassDir.EAST
+		outStr += CompassDir.keys()[CompassDir.EAST]
+	elif dir.x < -0.5:
+		global_direction = CompassDir.WEST
+		outStr += CompassDir.keys()[CompassDir.WEST]
+	
+	return outStr
+
+func level_bounds(p):
+	if p.x > 35:
+		global_transform.origin.x = -5 * 10
+	if p.z > 35:
+		global_transform.origin.z = -5 * 10
+	if p.x < -5:
+		global_transform.origin.x = 35 * 10
+	if p.z < -5:
+		global_transform.origin.z = 35 * 10
+
 
 """
 ===============

@@ -106,8 +106,8 @@ func play_footstep(vel : int) -> void:
 	var walk_threshold : float
 	var run_threshold : float
 	
-	walk_threshold = 3.25
-	run_threshold = 3.75
+	walk_threshold = 4
+	run_threshold = 5.75
 	
 	# Get horizontal distance from move
 	position = player.global_transform.origin

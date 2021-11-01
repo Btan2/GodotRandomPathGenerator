@@ -1,0 +1,15 @@
+[gd_resource type="SpatialMaterial" load_steps=3 format=2]
+
+[sub_resource type="OpenSimplexNoise" id=1]
+
+[sub_resource type="NoiseTexture" id=2]
+seamless = true
+noise = SubResource( 1 )
+
+[resource]
+flags_unshaded = true
+params_blend_mode = 1
+params_billboard_keep_scale = true
+albedo_color = Color( 1, 0, 0, 0.627451 )
+albedo_texture = SubResource( 2 )
+uv1_scale = Vector3( 1, 50, 1 )

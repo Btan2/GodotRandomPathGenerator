@@ -33,6 +33,8 @@ config/icon="res://icon.png"
 [autoload]
 
 Trace="*res://addons/trace.gd"
+DrawLine3d="*res://addons/DrawLine3D.gd"
+DebugDraw="*res://addons/debug_draw.gd"
 
 [display]
 

@@ -30,16 +30,6 @@ using System.Collections.Generic;
 
 public class Maze_Generator : Node
 {
-    private float[] PROBABILITY = new float[6]
-    {
-        0.9f, // 0 Neighbours 
-        0.8f, // 1 Neighbour
-        0.5f, // 2 Neighbours
-        0.4f, // 3 Neighbours
-        0.2f, // 4 Neighbours
-        0.2f, // DEFAULT
-        };
-
     private RandomNumberGenerator rng;
     private SpatialMaterial material_redbrick;
     private const int SCALE = 10;
@@ -53,17 +43,20 @@ public class Maze_Generator : Node
     private int[,] dfsNum;
     private bool[,] isArticulation;
 
-    private enum Tile {BLANK, PATH, END, START, EXIT};
+    private enum Tile {BLANK, PATH, END, START, EXIT, TRAP};
 
     private Tile[,] grid;
     private bool[,] ends;
-
+    private int[,] adjacent = {{1,0},{0,1},{-1,0},{0,-1}};
     private Texture[] maps;
     private string[] mapNames;
     private string mapName = "";
 
     private int[] start;
     private int[] exit;
+
+    private bool enclosed = false;
+    private Vector3 mazeOrigin;
 
     /*
     ==================
@@ -75,6 +68,7 @@ public class Maze_Generator : Node
         rng = new RandomNumberGenerator();
         rng.Randomize();
 
+        mazeOrigin = Vector3.Zero;
         material_redbrick = ResourceLoader.Load("res://materials/Material_RedBricks.tres") as SpatialMaterial;
 
         LoadMaps();   
@@ -114,6 +108,51 @@ public class Maze_Generator : Node
     }
 
     /*
+    ===============
+    IsValid
+    ===============
+    */
+    private bool IsValid(int x, int y)
+    {
+        return x >= 0 && x < width && y >= 0 && y < height;
+    }
+
+    /*
+    ====================
+    GetMapName
+    ====================
+    */
+    public string GetMapName()
+    {
+        return mapName;
+    }
+
+    public int[] GetMapSize()
+    {
+        return new int[]{width, height};
+    }
+
+    public int GetMapWidth()
+    {
+        return width;
+    }
+
+    public int GetMapHeight()
+    {
+        return height;
+    }
+
+    public int GetMapScale()
+    {
+        return SCALE;
+    }
+
+    public bool IsEnclosed()
+    {
+        return enclosed;
+    }
+
+    /*
     ====================
     AddToConsole
     ====================
@@ -139,40 +178,106 @@ public class Maze_Generator : Node
 
     /*
     ====================
-    GetMapFromName
+    StartMap
+
+    Starts a new map
     ====================
     */
-    public int GetMapFromName(string s)
+    public void StartMap(string s)
     {
-        for(int i = 0; i < mapNames.Length; i++)
+        enclosed = true;
+
+        Texture map = GetMap(s);
+
+        if(map == null)
         {
-            if(s == mapNames[i])
-            {
-                return i;
-            }
+            AddToConsole(":::Cannot load map (does it exist?):::");
+            return;
         }
 
-        return -1;
+        AddToConsole("");
+        AddToConsole("Generating new map........");
+        AddToConsole("--------------------------");        
+        AddToConsole("MAP: " + mapName);
+       
+        GenerateMap(map);
+
+        //CellSelector(0,5,0,5);
+
+        CreateMultiMesh();      
+                
+        // Set player position
+        KinematicBody player;
+        player = GetParent().GetNode("Player") as KinematicBody;
+        Transform t = player.GlobalTransform;
+        t.origin = Vector3.Up * 4;
+        player.GlobalTransform = t;
+
+        // Set floor scale and position
+        MeshInstance floor;
+        floor = GetParent().GetNode("Floor") as MeshInstance;
+        floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
+	    Transform f_transform = floor.GlobalTransform;
+        f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
+        floor.GlobalTransform = f_transform;
     }
 
-    /*
-    ====================
-    GetMapName
-    ====================
-    */
-    public string GetMapName()
+    public void StartMap(string s, bool b)
     {
-        return mapName;
+        enclosed = b;
+
+        Texture map = GetMap(s);
+
+        if(map == null)
+        {
+            AddToConsole(":::Cannot load map (does it exist?):::");
+            return;
+        }
+
+        AddToConsole("");
+        AddToConsole("Generating new map........");
+        AddToConsole("--------------------------");        
+        AddToConsole("MAP: " + mapName);
+       
+        GenerateMap(map);
+
+        //CellSelector(0,5,0,5);
+
+        CreateMultiMesh();      
+                
+        // Set player position
+        KinematicBody player;
+        player = GetParent().GetNode("Player") as KinematicBody;
+        Transform t = player.GlobalTransform;
+        t.origin = Vector3.Up * 4;
+        player.GlobalTransform = t;
+
+        // Set floor scale and position
+        MeshInstance floor;
+        floor = GetParent().GetNode("Floor") as MeshInstance;
+        floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
+	    Transform f_transform = floor.GlobalTransform;
+        f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
+        floor.GlobalTransform = f_transform;
     }
 
-    /*
+   /*
     ====================
     GetMap
     ====================
-    */      
-    private Texture GetMap(string s)
-    {
-        int mapIndex = GetMapFromName(s);
+    */
+    public Texture GetMap(string s)
+    {   
+        int mapIndex = -1; 
+        string title = s.Split("_")[0];
+
+        for(int i = 0; i < mapNames.Length; i++)
+        {
+            if(mapNames[i].BeginsWith(title))
+            {
+                mapIndex = i;
+            }
+        }                    
 
         if(mapIndex >= 0)
         {
@@ -193,69 +298,50 @@ public class Maze_Generator : Node
 
     /*
     ====================
-    StartMap
-
-    Starts a new map
-    ====================
-    */
-    public void StartMap(string s)
-    {
-        Texture map = GetMap(s);
-
-        if(map == null)
-        {
-            AddToConsole(":::Cannot load map (does it exist?):::");
-            return;
-        }
-
-        AddToConsole("GOT MAP: " + mapName);
-        AddToConsole("");
-        AddToConsole("Generating new map........");
-        AddToConsole("--------------------------");        
-       
-        GenerateMap(map);         
-        CreateMultiMesh();      
-                
-        // Set player position
-        KinematicBody player;
-        player = GetParent().GetNode("Player") as KinematicBody;
-        Transform t = player.GlobalTransform;
-        t.origin = Vector3.Up * 4;
-        player.GlobalTransform = t;
-
-        // Set floor scale and position
-        MeshInstance floor;
-        floor = GetParent().GetNode("Floor") as MeshInstance;
-        floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
-	    Transform f_transform = floor.GlobalTransform;
-        f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
-        floor.GlobalTransform = f_transform;
-    }
-
-    /*
-    ====================
     GenerateMap
     ====================
     */
     private void GenerateMap(Texture map)
     {        
         Image img = map.GetData();
-        ReadImageMap(img);
+        ReadImageToGridMap(img);
         
-        // The end of filename determines the number of tiles to remove during path generation.       
-        if(!mapName.Contains("_"))
+        // Check for cut count in filename
+        
+        string[] nameSplit = mapName.Split("_");
+
+        if(nameSplit.Length <= 1)
         {
-            AddToConsole("MAP: 0 tiles removed..");
+            AddToConsole("MAP: 0 tiles removed" + "\n" + "MAP: No chisel paths.." + "\n" + "MAP: " + (enclosed ? "Closed" : "Open"));
+            GeneratePath(false, 0);  
+            return;          
+        }
+
+        int cuts = -1;
+        string cutStr = nameSplit[1];       
+        if(cutStr.Contains("."))
+        {
+            cutStr = cutStr.Substring(0, cutStr.IndexOf("."));
+        }
+
+        if(cutStr.IsValidInteger())
+        {
+            cuts = cutStr.ToInt();
+        }
+
+        //AddToConsole("CUT HUS NUCH");
+        //AddToConsole(cuts.ToString());
+
+        if(cuts <= -1)
+        {
+            AddToConsole("MAP: 0 tiles removed" + "\n" + "MAP: No chisel paths.." + "\n" + "MAP: " + (enclosed ? "Closed" : "Open"));
             GeneratePath(false, 0);
         }
         else
-        {   
-            string subString = mapName.Substring(mapName.IndexOf("_"));
-            subString = subString.Substring(1, subString.IndexOf(".")-1);
-
-            AddToConsole("MAP: " + subString + " tiles removed..");
-            GeneratePath(true, subString.ToInt());    
-        }      
+        {
+            AddToConsole("MAP: Chiseled path with ~" + cuts.ToString() + " tiles removed.." + "\n" + "MAP: " + (enclosed ? "Closed" : "Open"));
+            GeneratePath(true, cuts);  
+        }  
     }
 
     /*
@@ -265,7 +351,7 @@ public class Maze_Generator : Node
     Setup grid from image pixel array
     ====================
     */
-    public void ReadImageMap(Image img)
+    public void ReadImageToGridMap(Image img)
     {
         img.Lock();
 
@@ -314,6 +400,17 @@ public class Maze_Generator : Node
 
         if (!chisel)
         {
+            for(int x = 0; x < width; x++)
+            {
+                for(int y = 0; y < width; y++)
+                {
+                    if (grid[x,y] == Tile.PATH)
+                    {
+                        grid[x,y] = Tile.BLANK;
+                    }
+                }
+            }
+
             return;
         }
 
@@ -415,8 +512,6 @@ public class Maze_Generator : Node
     */
     private void InitializeWeights()
     {
-        int[,] d = new int[,]{{1,0},{0,1},{-1,0},{0,-1}};
-
         totalWeight = 0f;
 
         weights = new float[width, height];
@@ -424,9 +519,33 @@ public class Maze_Generator : Node
         {
             for(int y = 0; y < height; y++)
             {
-                float roll = GetRollWeight(x,y,d);
+                float roll = GetRollWeight(x,y);
                 weights[x,y] = roll;
                 totalWeight += roll;
+            }
+        }
+    }
+
+    /*
+    ==================
+    CellSelector
+    ==================
+    */
+    public void CellSelector(int xMin, int xMax, int yMin, int yMax)
+    {
+        int xSize = Math.Abs(xMax - xMin);
+        int ySize = Math.Abs(yMax - yMin);
+
+        //int[,,] selectedCells = new int[xSize, ySize,2];
+        //List<Vector2> selectedCells = new List<Vector2>();
+        for( int x = 0; x < xSize; x++)
+        {
+            for(int y = 0; y < ySize; y++)
+            {
+                //selectedCells[x,y,0] = xMin+x;
+                //selectedCells[x,y,1] = yMin+y;                
+
+                grid[xMin+x,yMin+y] = Tile.PATH;
             }
         }
     }
@@ -439,13 +558,13 @@ public class Maze_Generator : Node
     randomly selected based on its neighbour count
     ====================
     */
-    private float GetRollWeight(int x, int y, int[,] d)
+    private float GetRollWeight(int x, int y)
     {
         int n = 0;
         for(int i = 0; i < 4; i++)
         {
-            int vx = x + d[i,0];
-            int vy = y + d[i,1];
+            int vx = x + adjacent[i,0];
+            int vy = y + adjacent[i,1];
 
             if(!IsValid(vx,vy) || grid[vx,vy] == Tile.BLANK)
             {
@@ -455,13 +574,29 @@ public class Maze_Generator : Node
             n++;
         }
 
-        int pLength = PROBABILITY.Length;
-        if (n > pLength)
-        {
-            return PROBABILITY[pLength-1];
-        }
+        // TODO: Higher probability of chosing tiles with more blank neighbours
+        // Should increase uiniform
 
-        return PROBABILITY[n];
+        switch(n)
+        {
+            case 0:
+                return 0.9f;
+
+            case 1:
+                return 0.8f;
+
+            case 2:
+                return 0.4f;
+            
+            case 3:
+                return 0.3f;
+            
+            case 4:
+                return 0.9f;
+            
+            default:
+                return 0.2f;
+        }
     }
 
     /*
@@ -497,38 +632,65 @@ public class Maze_Generator : Node
         multiMesh.Mesh = mesh;
         multiMesh.InstanceCount = 0;
 
-        // Initialize rotations and neighbour direction arrays
+        // Initialize rotations
         int[] r = new int[]{90,0,-90,180};
-        int[,] p = {{1,0},{0,1},{-1,0},{0,-1}};
         List<Transform> transformArray = new List<Transform>();
 
         for(int x= 0; x < width; x++)
         {
             for(int y=0; y < height; y++)
-            {
-                if(grid[x,y] == Tile.BLANK)
+            {       
+                if(grid[x,y] == Tile.BLANK && enclosed)
                 {
                     continue;
-                }
+                }  
+
+                // if(grid[x,y] == Tile.START || grid[x,y] == Tile.EXIT)
+                // {
+                //     continue;
+                // }
 
                 // Rotate and position transforms for plane meshes
-
                 for(int i = 0; i < 4; i++)
                 {
-                    int vx = x + p[i,0];
-                    int vy = y + p[i,1];
-
+                    int vx = x + adjacent[i,0];
+                    int vy = y + adjacent[i,1];
+                    int vr = 0;
+                    
                     bool valid = IsValid(vx,vy);
-                    if (!valid || (valid && grid[vx,vy] == Tile.BLANK))
-                    {
-                        multiMesh.InstanceCount += 1;
 
-                        Transform t = new Transform();
-                        t.basis = Basis.Identity;
-                        t.basis = t.basis.Rotated(new Vector3(1,0,0), Mathf.Deg2Rad(-90));
-                        t.basis = t.basis.Rotated(new Vector3(0,1,0), Mathf.Deg2Rad(r[i]));
-                        t.origin = new Vector3(p[i,0], WALLHEIGHT, p[i, 1]) * SCALE/2  + new Vector3(x, 0, y) * SCALE;
-                        transformArray.Add(t);
+                    if (enclosed)
+                    {
+                        if (!valid || (valid && grid[vx,vy] == Tile.BLANK))
+                        {
+                            multiMesh.InstanceCount += 1;
+
+                            Transform t = new Transform();
+                            t.basis = Basis.Identity;
+                            t.basis = t.basis.Rotated(new Vector3(1,0,0), Mathf.Deg2Rad(-90));
+                            t.basis = t.basis.Rotated(new Vector3(0,1,0), Mathf.Deg2Rad(r[i]));
+                            t.origin = new Vector3(adjacent[i,0], WALLHEIGHT, adjacent[i, 1]) * SCALE/2  + new Vector3(x, 0, y) * SCALE;
+                            transformArray.Add(t);
+                        }
+                    }
+                    else
+                    {
+                        if ((!valid && grid[x,y] == Tile.BLANK) || (valid && grid[x,y] != Tile.BLANK && grid[vx,vy] == Tile.BLANK))
+                        {
+                            if(!valid)
+                            {
+                                vr = 180;
+                            }
+
+                            multiMesh.InstanceCount += 1;
+
+                            Transform t = new Transform();
+                            t.basis = Basis.Identity;
+                            t.basis = t.basis.Rotated(new Vector3(1,0,0), Mathf.Deg2Rad(-90));
+                            t.basis = t.basis.Rotated(new Vector3(0,1,0), Mathf.Deg2Rad(r[i] + vr));
+                            t.origin = new Vector3(adjacent[i,0], WALLHEIGHT, adjacent[i, 1]) * SCALE/2  + new Vector3(x, 0, y) * SCALE;
+                            transformArray.Add(t);                            
+                        }
                     }
                 }
             }
@@ -551,16 +713,6 @@ public class Maze_Generator : Node
         }
 
         AddChild(mmi);
-    }
-
-    /*
-    ===============
-    IsValid
-    ===============
-    */
-    private bool IsValid(int x, int y)
-    {
-        return x >= 0 && x < width && y >= 0 && y < height;
     }
 
     /*
@@ -628,11 +780,11 @@ public class Maze_Generator : Node
         low[ux,uy] = num;
         dfsNum[ux,uy] = num;
 
-        int[,] p = {{1,0},{0,1},{-1,0},{0,-1}};
+
         for(int i = 0; i < 4; i++)
         {
-            int vx = ux + p[i,0];
-            int vy = uy + p[i,1];
+            int vx = ux + adjacent[i,0];
+            int vy = uy + adjacent[i,1];
 
             if (!IsValid(vx,vy))
             {
@@ -671,3 +823,30 @@ public class Maze_Generator : Node
         return (childCount, isRelevantSubtree);
     }
 }
+
+// /*
+// ====================
+// GetNeighbours
+// ====================
+// */
+// private (Tile[],Vector2[]) GetNeighbours(int x, int y)
+// {
+//     List<Tile> neighbours = new List<Tile>();
+//     List<Vector2> pos = new List<Vector2>();
+
+//     for(int i = 0; i < 4; i++)
+//     {
+//         int vx = x + adjacent[i,0];
+//         int vy = y + adjacent[i,1];
+
+//         if(!IsValid(vx,vy))
+//         {
+//             continue;
+//         }
+
+//         neighbours.Add(grid[vx,vy]);
+//         pos.Add(new Vector2(vx,vy));
+//     }
+
+//     return (neighbours.ToArray(), pos.ToArray());
+// }

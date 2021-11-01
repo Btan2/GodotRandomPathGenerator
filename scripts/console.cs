@@ -1,28 +1,33 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 
 public class console : Node
 {
-    private Node2D window;
-    private float consoleHeight = 0.5f;
-    private float consoleSpeed = 15.0f;
     private RandomNumberGenerator rng;
+    private Maze_Generator level;
+    private KinematicBody player;
+    private ColorRect windowLine;
+    private Node2D window;
+    private float windowHeight = 0.5f;
+    private float windowSpeed = 15.0f;
+
     private Vector2 configResolution;
     private Label consoleOut;
     private LineEdit consoleIn;
-    private ColorRect foot;
-    private Sprite consoleBKG;
-    private Texture[] consoleTextures;
-    private List<string> c_lines;
-    private List<string> history;
-    private bool displayConsole = false;
-    private bool quitting = false;
+    private Sprite cBKG;
+    private Texture[] cTextures;
+    private string[] cLines;
+    private string[] history;
+    private bool displayWindow = false;
+
+    private int historyCount = 0;
     private int historyPos = 0;
     private int displaySize = 0;
-    private const int MAX_CLINE_COUNT = 200;
-    private Maze_Generator level;
+    private int lineCount = 0;
 
+    private int MAX_CLINE = 500;
+    private int MAX_HISTORY = 10;
+    
     /*
     ==================
     _Ready
@@ -35,16 +40,21 @@ public class console : Node
 
         window = GetNode("Console") as Node2D;
         level = GetNode("Map") as Maze_Generator;
+        player = GetNode("Player") as KinematicBody;     
         consoleOut = GetNode("Console/Console_Text") as Label;
         consoleIn = GetNode("Console/Console_Input") as LineEdit;
-        foot = GetNode("Console/Console_Footer") as ColorRect;
-        consoleBKG = GetNode("Console/Squares") as Sprite;
+        windowLine = GetNode("Console/Console_Footer") as ColorRect;
+        cBKG = GetNode("Console/Squares") as Sprite;
+        
         configResolution = GetViewport().Size;
 
-        c_lines = new List<string>();
-        history = new List<string>();
+        cLines = new string[MAX_CLINE];
+        history = new string[MAX_HISTORY];
 
-	    displaySize = 0;
+	    lineCount = 0;
+        historyCount = 0;
+        historyPos = 0;
+        displaySize = 0;
 	    consoleIn.Text = "";
         consoleOut.Text = "";
 
@@ -56,7 +66,7 @@ public class console : Node
         c.b = 0.1f;
         c.a = 1.0f;
 
-        (consoleBKG.Material as ShaderMaterial).SetShaderParam("color", c);
+        (cBKG.Material as ShaderMaterial).SetShaderParam("color", c);
 
         level.StartMap("random");
     }
@@ -68,21 +78,21 @@ public class console : Node
     */
     public override void _Input(InputEvent @event)
     {
-        if (quitting) 
-            return;
+        // if (quitting) 
+        //     return;
         
         // Show/hide console window
         if (Input.IsActionJustPressed("console"))
         {
-            if(displayConsole)
+            if(displayWindow)
             {
-                displayConsole = false;
+                displayWindow = false;
                 pauseGame(false);	
                 consoleIn.ReleaseFocus();
             }
             else
             {
-                displayConsole = true;
+                displayWindow = true;
                 pauseGame(true);
                 consoleIn.GrabFocus();
             }
@@ -95,11 +105,11 @@ public class console : Node
             GetTree().SetInputAsHandled();
         }
         
-        if (displayConsole)
+        if (displayWindow)
         {
-            // Go "up/down" through input history
-            if(history.Count > 0)
+            if(historyCount > 0)
             {
+                // Go "up/down" through input history
                 if(Input.IsActionJustPressed("ui_up"))
                 {
                     DisplayPrevious(-1);
@@ -113,32 +123,35 @@ public class console : Node
             // Scroll console page up/down one line
             if(Input.IsActionPressed("ui_page_up"))
             {
-                displaySize = (int)Mathf.Clamp(displaySize -1, 1, c_lines.Count);
-                UpdateConsole();
+                displaySize = (int)Mathf.Clamp(displaySize -1, 1, lineCount);
+                UpdateView();
             }
             if(Input.IsActionPressed("ui_page_down"))
             {
-                displaySize = (int)Mathf.Clamp(displaySize + 1, 1, c_lines.Count);
-                UpdateConsole();
+                displaySize = (int)Mathf.Clamp(displaySize + 1, 1, lineCount);
+                UpdateView();
             }
 
-            // Console input text
+            // ENTER
             if(Input.IsActionJustPressed("ui_accept"))
             {
                 if(consoleIn.Text.StripEdges(true,true) == "")
                 {
                     consoleIn.Text = "]";
-                }
+                }           
+
+                if (historyCount >= MAX_HISTORY)
+                {
+                    history = PushTop(consoleIn.Text, history);                        
+                    historyCount = MAX_HISTORY-1;
+                }  
                 else
                 {
-                    history.Add(consoleIn.Text);
-                    if (history.Count > MAX_CLINE_COUNT)
-                    {
-                        history.RemoveAt(0);
-                    }
-
-                    historyPos = history.Count;
+                    history[historyCount] = consoleIn.Text;                    
                 }
+
+                historyCount++;
+                historyPos = historyCount;
 
                 AddToConsole(consoleIn.Text);
                 ReadInput(consoleIn.Text);
@@ -155,19 +168,30 @@ public class console : Node
     public override void _Process(float delta)
     {
         Transform2D t = window.Transform;
-        t.origin.y += displayConsole ? consoleSpeed : -consoleSpeed;
-        t.origin.y = Mathf.Clamp(t.origin.y, 0, configResolution.y * consoleHeight);
+        t.origin.y += displayWindow ? windowSpeed : -windowSpeed;
+        t.origin.y = Mathf.Clamp(t.origin.y, 0, configResolution.y * windowHeight);
 	    if(t.origin.y <= 0)
         {
-            foot.Hide();
+            windowLine.Hide();
         }
 	    else
         {
-            foot.Show();
+            windowLine.Show();
         }  
 
         window.Transform = t;
     }
+
+    /*
+    ==================
+    DisplayPrevious
+    ==================
+    */
+    private void DisplayPrevious(int p)
+    {
+	    historyPos = Mathf.Clamp(historyPos + p, 0, historyCount-1);
+	    consoleIn.Text = history[historyPos];
+    }  
 
     /*
     ==================
@@ -186,9 +210,8 @@ public class console : Node
     */
     private void LoadConsoleTextures()
     {
-        AddToConsole("loading console textures..");
-        AddToConsole("--------------------------");
-        List<Texture> textures = new List<Texture>();
+        AddToConsole("loading console textures.." + "\n" + "--------------------------");
+        List<Texture> temp = new List<Texture>();
 
         string path = "res://textures/console/";
         Directory dir = new Directory();
@@ -205,17 +228,17 @@ public class console : Node
             if(fileName.EndsWith(".png") || fileName.EndsWith(".jpg"))
             {
                 AddToConsole(fileName);
-                textures.Add(ResourceLoader.Load("res://textures/console/" + fileName) as Texture);
+                temp.Add(ResourceLoader.Load("res://textures/console/" + fileName) as Texture);
             }
         }
         
-        consoleTextures = textures.ToArray();
-        textures.Clear();
+        cTextures = temp.ToArray();
+        temp.Clear();
 
         dir.ListDirEnd();
         
-        int r = rng.RandiRange(0,consoleTextures.Length-1);
-        consoleBKG.Texture = consoleTextures[r];
+        //int r = rng.RandiRange(0,cTextures.Length-1);
+        cBKG.Texture = cTextures[4];
     }
 
     /*
@@ -224,24 +247,36 @@ public class console : Node
     ==================
     */
     public void AddToConsole(string s)
-    {        
-	    c_lines.Add(s);
-	    displaySize++;
+    {      
+        if(lineCount >= MAX_CLINE)
+        {
+            cLines = PushTop(s, cLines);            
+            lineCount = MAX_CLINE-1;
+            displaySize = (int)Mathf.Clamp(displaySize + 1, 1, lineCount);
+        }
+        else
+        {
+	        cLines[lineCount] = s;
+        }
 
-	    UpdateConsole();
+        lineCount++;
+        displaySize = (int)Mathf.Clamp(displaySize + 1, 1, lineCount);
+
+        UpdateView();
+
     }
 
     /*
     ==================
-    UpdateConsole
+    UpdateView
     ==================
     */
-    private void UpdateConsole()
+    private void UpdateView()
     {
         consoleOut.Text = "";
 	    for(int i = 0; i < displaySize; i++)
         {
-            consoleOut.Text += c_lines[i] + (i != displaySize-1 ? "\n" : "");
+             consoleOut.Text += cLines[i] + (i != displaySize-1 ? "\n" : "");
         }
     }
 
@@ -259,14 +294,21 @@ public class console : Node
              case "console":
                  if (split_string.Length >= 2)
                  {
-                     ConsoleSettings(split_string[1],command);
+                     ConsoleOptions(split_string[1],command);
                  }
                  break;
             
             case "map":
-                    MapOptions(command);
+                MapOptions(command);
                 break;
-
+            
+            case "player":
+                if (split_string.Length >= 2)
+                {
+                    PlayerOptions(split_string[1],command);
+                }
+                break;
+            
             default:
                 break;
         }     
@@ -274,39 +316,154 @@ public class console : Node
 
     /*
     ==================
-    MapOptions
+    ClearConsole
     ==================
     */
-    private void MapOptions(string[] command)
+    private void ClearConsole()
     {
+        cLines = new string[MAX_CLINE];
+        history = new string[MAX_HISTORY];
 
-        if(command.Length >= 2)
-        {    
-            if (command[1] == "ls" || command[1] == "list")
-            {
-                level.PrintMapNames();
-            }
-            else if(command[1] == "restart")
-            {
-                level.StartMap(level.GetMapName());
-            }
-            else
-            {
-                level.StartMap(command[1]);
-            }
-        }
-        else
-        {
-            AddToConsole(level.GetMapName());
-        }
+	    lineCount = 0;
+        historyCount = 0;
+        historyPos = 0;
+        displaySize = 0;
+	    consoleIn.Text = "";
+        consoleOut.Text = "";
     }
 
     /*
     ==================
-    ConsoleSettings
+    RefreshConsole
     ==================
     */
-    private void ConsoleSettings(string s, string[] command)
+    private void RefreshConsole()
+    {
+        cLines = ResizeArray(cLines, MAX_CLINE);
+        history = ResizeArray(history, MAX_HISTORY);
+
+	    lineCount = (int)Mathf.Clamp(lineCount, 0, MAX_CLINE);
+        historyCount = (int)Mathf.Clamp(historyCount, 0, MAX_HISTORY);
+        historyPos = historyCount;
+        displaySize = (int)Mathf.Clamp(displaySize, 0, lineCount);	    
+        consoleIn.Text = "";
+    }
+
+    /*
+    ==================
+    ResizeArray
+    ==================
+    */
+    private string[] ResizeArray(string[] ar, int newSize)
+    {
+        string[] res = new string[newSize];
+
+        for(int i = 0; i < newSize; i++)
+        {
+            if (i > ar.Length-1)
+            {
+                break;
+            }                
+            
+            string s = ar[i];
+            res[i] = s;
+        }
+
+        return res;
+    }
+
+    /*
+    ==================
+    PushTop (string)
+
+    Removes element at 0 and shifts following elements back one
+    Adds new element at length-1.
+    ==================
+    */
+    private string[] PushTop(string addText, string[] current)
+    {
+        string[] shifted = new string[current.Length];
+        for(int i = 1; i < current.Length; i++)
+        {
+            shifted[i-1] = current[i];
+        }
+
+        shifted[shifted.Length-1] = addText;        
+
+
+        return shifted;
+    }
+
+    /*
+    ==================
+    PushBottom (string)
+
+    Removes element at length-1 and shifts following elements forward
+    Adds new element at 0;
+    ==================
+    */
+    private string[] PushBottom(string addText, string[] current)
+    {
+        string[] shifted = new string[current.Length];
+        for(int i = current.Length-1; i > 0; i--)
+        {
+            shifted[i] = current[i-1];
+        }
+
+        shifted[0] = addText;
+        displaySize = (int)Mathf.Clamp(displaySize - 1, 1, lineCount);
+
+        return shifted;
+    }
+
+    /*
+    ==================
+    SetConsoleSpeed
+    ==================
+    */
+    private void SetConsoleSpeed(float speed)
+    {
+        windowSpeed = speed;
+    }
+
+    /*
+    ==================
+    SetConsoleHeight
+    ==================
+    */
+    private void SetConsoleHeight(float height)
+    {
+        windowHeight = height;
+    }
+
+    /*
+    ==================
+    SetMaxHistory
+    ==================
+    */
+    private void SetMaxHistory(int c)
+    {
+        MAX_HISTORY = (int)Mathf.Clamp(c, 0, 1000);
+        RefreshConsole();
+    }
+
+    /*
+    ==================
+    SetMaxCLine
+    ==================
+    */
+    private void SetMaxCLine(int c)
+    {
+        MAX_CLINE = (int)Mathf.Clamp(c, 0, 1000);
+        RefreshConsole();
+    }
+
+    /*
+    ==================
+    ConsoleOptions
+    ==================
+    */
+    private void ConsoleOptions(string s, string[] command)
     {
         switch(s)
         {
@@ -315,13 +472,13 @@ public class console : Node
                 {
                     if(command[1].IsValidInteger())
                     {
-                        int i = (int)Mathf.Clamp(command[1].ToInt(), 0, consoleTextures.Length-1);
-                        consoleBKG.Texture = consoleTextures[i];
+                        int i = (int)Mathf.Clamp(command[1].ToInt(), 0, cTextures.Length-1);
+                        cBKG.Texture = cTextures[i];
                     }
                     else if (command[1].ToLower() == "random")
                     {
-                        int r = rng.RandiRange(0,consoleTextures.Length-1);
-                        consoleBKG.Texture = consoleTextures[r];
+                        int r = rng.RandiRange(0,cTextures.Length-1);
+                        cBKG.Texture = cTextures[r];
                     }
                 }       
                 break;
@@ -339,42 +496,28 @@ public class console : Node
                     SetConsoleHeight(command[1].ToFloat());
                 }
                 break;                
-
+            case "lines":
+                if(command.Length > 2)
+                {
+                    if(command[1] == "max_history" && command[2].IsValidInteger())
+                    {
+                        SetMaxHistory(command[2].ToInt());
+                    }
+                    if(command[1] == "max_cline" && command[2].IsValidInteger())
+                    {
+                        SetMaxCLine(command[2].ToInt());
+                    }
+                }
+                break;
+            case "clear":
+                if(command.Length == 2)
+                {
+                    ClearConsole();
+                }
+                break;
             default:
                 break;
         }
-    }
-
-    /*
-    ==================
-    SetConsoleSpeed
-    ==================
-    */
-    private void SetConsoleSpeed(float speed)
-    {
-        consoleSpeed = speed;
-    }
-
-    /*
-    ==================
-    SetConsoleHeight
-    ==================
-    */
-    private void SetConsoleHeight(float height)
-    {
-        consoleHeight = height;
-    }
-
-    /*
-    ==================
-    DisplayPrevious
-    ==================
-    */
-    private void DisplayPrevious(int p)
-    {
-	    historyPos = Mathf.Clamp(historyPos + p, 0, history.Count-1);
-	    consoleIn.Text = history[historyPos];
-	    consoleIn.CaretPosition = consoleIn.Text.Length-1;
     }
 
     /*
@@ -388,8 +531,96 @@ public class console : Node
 	    //var y_scale = config_resolution.y/maxres.y
 	    configResolution = GetViewport().Size;
         
-        Vector2 rSize = foot.RectSize;
+        Vector2 rSize = windowLine.RectSize;
 	    rSize.x = configResolution.x;
-        foot.RectSize = rSize;
+        windowLine.RectSize = rSize;
+    }
+
+    /*
+    ==================
+    PlayerOptions
+    ==================
+    */
+    private void PlayerOptions(string s, string[] command)
+    {
+        switch(s)
+        {
+            case "teleport":
+                if(command.Length > 1)
+                {
+                    float[] pos = new float[]{0f,0f,0f};
+                    for(int i = 1; i < command.Length; i++)
+                    {
+                        if(command[i].IsValidFloat())
+                        {
+                            //AddToConsole(command[i].ToString());
+                            pos[i-1] = command[i].ToFloat();
+                        }                        
+                    }
+
+                    int x = (int)Mathf.Clamp(pos[0], 0, level.GetMapWidth());
+                    int y = (int)Mathf.Clamp(pos[1], 0, 100);
+                    int z = (int)Mathf.Clamp(pos[2], 0, level.GetMapHeight());                        
+                    
+                    var t = player.GlobalTransform;
+                    int scale = level.GetMapScale();
+                    t.origin = new Vector3(x * scale, y, z * scale);
+                    player.GlobalTransform = t;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /*
+    ==================
+    MapOptions
+    ==================
+    */
+    private void MapOptions(string[] command)
+    {
+        if (command.Length >= 3)
+        {
+            if (command[2] == "closed")
+            {
+                level.StartMap(command[1], true);
+            }
+            else if (command[2] == "open")
+            {
+                level.StartMap(command[1], false);
+            }
+            else
+            {
+                level.StartMap(command[1], false);
+            }
+        }
+        else if(command.Length >= 2)
+        {
+            if (command[1] == "ls" || command[1] == "list")
+            {
+                level.PrintMapNames();
+            }
+            else if(command[1] == "restart")
+            {
+                level.StartMap(level.GetMapName());
+            }
+            else if (command[1] == "info")
+            {
+                AddToConsole("Map Name: " + level.GetMapName());
+                AddToConsole("Map Width: " + level.GetMapWidth());
+                AddToConsole("Map Height: " + level.GetMapHeight());
+                AddToConsole("Map Enclosed: " + level.IsEnclosed());
+            }
+            else
+            {
+                level.StartMap(command[1]);
+            }
+        }
+        else
+        {
+            AddToConsole(level.GetMapName());
+        }
     }
 }

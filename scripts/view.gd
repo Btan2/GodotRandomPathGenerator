@@ -130,6 +130,8 @@ func _physics_process(delta):
 	
 	if shakecam:
 		shake(1)
+		
+	##$Label.text = str(camera.rotation_degrees.y)
 
 """
 ===============
