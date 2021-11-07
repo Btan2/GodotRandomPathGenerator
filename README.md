@@ -56,9 +56,10 @@ Weighted randomization with 10x scale:
     - "console_texture random" - Randomize console background texture
 
 # Current Issues and TODOs
-  - Stack overflow when chiseling large grids
-  - Long load times with over 1000 cuts
+  - CAUTION: Stack overflow when chiseling large grids. Try to stick to under 1000 cuts when generating maps.
+  - Very long load times when generating over 1000 cuts.
   - CONSOLE MAY BE BUGGY
+  - Code is still a bit of a mess and needs further cleaning up.
   - Need to reduce coupling.
   - I am experiencing laggy inputs on my machine, although this happens to me with every project with Godot, so hopefully it's just a problem on my end only.
   
