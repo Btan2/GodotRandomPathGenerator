@@ -1,7 +1,6 @@
 shader_type canvas_item;
 
 uniform vec4 color : hint_color;
-uniform float solid_color = 1.0;
 uniform float brightness = 1.0;
 uniform float contrast = 1.0;
 uniform float saturation = 1.0;
@@ -39,12 +38,13 @@ void fragment(){
 	col = mix(colTex.rgb, col, texture_alpha);
 	COLOR = vec4(col, transparency);
 	
-	for(int i=0; i<50; i++){
-		float fi = float(i);
-		//float speed = rnd(fi)+rnd(cos(fi));
-		//vec2 point = vec2((mod(speed * TIME, 3.5) - 1.75), 1.0 + mod(TIME * -rnd(fi), -2.0));
-		float speed = random(vec2(fi)) + random(cos(vec2(fi)));
-		vec2 point = vec2((mod(speed * TIME, 3.5) - 1.75), 1.0 + mod(TIME * -random(vec2(fi)), -2.0));
-		COLOR += 1.0 - square(uv, point, 0.005); 
-	}
+	
+//	for(int i=0; i<50; i++){
+//		float fi = float(i);
+//		//float speed = rnd(fi)+rnd(cos(fi));
+//		//vec2 point = vec2((mod(speed * TIME, 3.5) - 1.75), 1.0 + mod(TIME * -rnd(fi), -2.0));
+//		float speed = random(vec2(fi)) + random(cos(vec2(fi)));
+//		vec2 point = vec2((mod(speed * TIME, 3.5) - 1.75), 1.0 + mod(TIME * -random(vec2(fi)), -2.0));
+//		COLOR += 1.0 - square(uv, point, 0.005); 
+//	}
 }

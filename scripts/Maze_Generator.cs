@@ -1,18 +1,15 @@
+  
 /*
 MIT License
-
 Copyright (c) 2018 Adam Newgas
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,7 +17,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 Source: https://github.com/BorisTheBrave/chiseled-random-paths
 */
 
@@ -58,13 +54,17 @@ public class Maze_Generator : Node
     private bool enclosed = false;
     private Vector3 mazeOrigin;
 
+    private Console console;
+
     /*
     ==================
     _Ready
     ==================
     */
-    public override void _Ready()
+    public void Run()
     {
+        console = GetParent().GetNode("Console") as Console;
+
         rng = new RandomNumberGenerator();
         rng.Randomize();
 
@@ -117,109 +117,9 @@ public class Maze_Generator : Node
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    /*
-    ====================
-    GetMapName
-    ====================
-    */
-    public string GetMapName()
-    {
-        return mapName;
-    }
-
-    public int[] GetMapSize()
-    {
-        return new int[]{width, height};
-    }
-
-    public int GetMapWidth()
-    {
-        return width;
-    }
-
-    public int GetMapHeight()
-    {
-        return height;
-    }
-
-    public int GetMapScale()
-    {
-        return SCALE;
-    }
-
     public bool IsEnclosed()
     {
         return enclosed;
-    }
-
-    /*
-    ====================
-    AddToConsole
-    ====================
-    */      
-    private void AddToConsole(string s)
-    {
-        (GetParent() as console).AddToConsole(s);
-    }
-
-    /*
-    ====================
-    PrintMapNames
-    ====================
-    */
-    public void PrintMapNames()
-    {
-        AddToConsole(":::Map List:::");
-        for(int i =0; i < mapNames.Length; i++)
-        {
-            AddToConsole(mapNames[i]);
-        }
-    }
-
-    /*
-    ====================
-    StartMap
-
-    Starts a new map
-    ====================
-    */
-    public void StartMap(string s)
-    {
-        enclosed = true;
-
-        Texture map = GetMap(s);
-
-        if(map == null)
-        {
-            AddToConsole(":::Cannot load map (does it exist?):::");
-            return;
-        }
-
-        AddToConsole("");
-        AddToConsole("Generating new map........");
-        AddToConsole("--------------------------");        
-        AddToConsole("MAP: " + mapName);
-       
-        GenerateMap(map);
-
-        //CellSelector(0,5,0,5);
-
-        CreateMultiMesh();      
-                
-        // Set player position
-        KinematicBody player;
-        player = GetParent().GetNode("Player") as KinematicBody;
-        Transform t = player.GlobalTransform;
-        t.origin = Vector3.Up * 4;
-        player.GlobalTransform = t;
-
-        // Set floor scale and position
-        MeshInstance floor;
-        floor = GetParent().GetNode("Floor") as MeshInstance;
-        floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
-	    Transform f_transform = floor.GlobalTransform;
-        f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
-        floor.GlobalTransform = f_transform;
     }
 
     public void StartMap(string s, bool b)
@@ -230,14 +130,13 @@ public class Maze_Generator : Node
 
         if(map == null)
         {
-            AddToConsole(":::Cannot load map (does it exist?):::");
+            console.Print(":::Cannot load map (does it exist?):::");
             return;
         }
 
-        AddToConsole("");
-        AddToConsole("Generating new map........");
-        AddToConsole("--------------------------");        
-        AddToConsole("MAP: " + mapName);
+        console.Print("");
+        console.Print("Generating new map........");
+        console.Print("--------------------------");        
        
         GenerateMap(map);
 
@@ -254,11 +153,13 @@ public class Maze_Generator : Node
 
         // Set floor scale and position
         MeshInstance floor;
-        floor = GetParent().GetNode("Floor") as MeshInstance;
+        floor = GetNode("Floor") as MeshInstance;
         floor.Scale = new Vector3(width+1, Math.Max(width+1, height+1), height+1) * SCALE;
 	    Transform f_transform = floor.GlobalTransform;
         f_transform.origin = new Vector3(width*SCALE/2f, 0f, height*SCALE/2f);
         floor.GlobalTransform = f_transform;
+
+        //GetNode("Lasers").Call("set_lasers");
     }
 
    /*
@@ -286,14 +187,19 @@ public class Maze_Generator : Node
         }
         else if(s == "random")
         {
-            int rand = rng.RandiRange(0,maps.Length-1);
-            mapName = mapNames[rand];
-            return maps[rand];
+            return GetRandomMap();
         }
         else
         {
             return null;
         }
+    }
+
+    public Texture GetRandomMap()
+    {
+        int rand = rng.RandiRange(0,maps.Length-1);
+        mapName = mapNames[rand];
+        return maps[rand];
     }
 
     /*
@@ -312,7 +218,13 @@ public class Maze_Generator : Node
 
         if(nameSplit.Length <= 1)
         {
-            AddToConsole("MAP: 0 tiles removed" + "\n" + "MAP: No chisel paths.." + "\n" + "MAP: " + (enclosed ? "Closed" : "Open"));
+            console.Print("- Name: " + GetMapName());
+            console.Print("- Width: " + GetMapWidth());
+            console.Print("- Height: " + GetMapHeight());
+            console.Print("- Enclosed: " + IsEnclosed());
+            console.Print("- Chiseling: false");
+            console.Print("- Tiles: 0 removed"); 
+
             GeneratePath(false, 0);  
             return;          
         }
@@ -334,20 +246,31 @@ public class Maze_Generator : Node
 
         if(cuts <= -1)
         {
-            AddToConsole("MAP: 0 tiles removed" + "\n" + "MAP: No chisel paths.." + "\n" + "MAP: " + (enclosed ? "Closed" : "Open"));
+            console.Print("- Name: " + GetMapName());
+            console.Print("- Width: " + GetMapWidth());
+            console.Print("- Height: " + GetMapHeight());
+            console.Print("- Enclosed: " + IsEnclosed());
+            console.Print("- Chiseling: false");
+            console.Print("- Tiles: 0 removed");   
+
             GeneratePath(false, 0);
         }
         else
         {
-            AddToConsole("MAP: Chiseled path with ~" + cuts.ToString() + " tiles removed.." + "\n" + "MAP: " + (enclosed ? "Closed" : "Open"));
+            console.Print("- Name: " + GetMapName());
+            console.Print("- Width: " + GetMapWidth());
+            console.Print("- Height: " + GetMapHeight());
+            console.Print("- Enclosed: " + IsEnclosed());
+            console.Print("- Chiseling: true");
+            console.Print("- Tiles: " + cuts.ToString() + " to be removed");            
+
             GeneratePath(true, cuts);  
-        }  
+        } 
     }
 
     /*
     ====================
     ReadImageMap
-
     Setup grid from image pixel array
     ====================
     */
@@ -481,7 +404,6 @@ public class Maze_Generator : Node
     /*
     ==================
     GetRandomTile
-
     Get random tile using weights
     ==================
     */
@@ -536,29 +458,27 @@ public class Maze_Generator : Node
         int xSize = Math.Abs(xMax - xMin);
         int ySize = Math.Abs(yMax - yMin);
 
-        //int[,,] selectedCells = new int[xSize, ySize,2];
-        //List<Vector2> selectedCells = new List<Vector2>();
-        for( int x = 0; x < xSize; x++)
+        for( int x = xMin; x < xMax; x++)
         {
-            for(int y = 0; y < ySize; y++)
-            {
-                //selectedCells[x,y,0] = xMin+x;
-                //selectedCells[x,y,1] = yMin+y;                
-
-                grid[xMin+x,yMin+y] = Tile.PATH;
+            for(int y = yMin; y < yMax; y++)
+            {            
+                // Do stuff to each cell
+                // e.g. grid[x,y] = Tile.PATH;
             }
         }
     }
 
-    /*
-    ====================
-    GetRollWeight
+    public bool IsBlank(int x, int y)
+    {
+        if(IsValid(x,y))
+        {
+            return grid[x,y] == Tile.BLANK;
+        }
 
-    Returns probability of a tile being
-    randomly selected based on its neighbour count
-    ====================
-    */
-    private float GetRollWeight(int x, int y)
+        return false;        
+    }
+
+    public int GetBlankNeighbours(int x, int y)
     {
         int n = 0;
         for(int i = 0; i < 4; i++)
@@ -566,30 +486,40 @@ public class Maze_Generator : Node
             int vx = x + adjacent[i,0];
             int vy = y + adjacent[i,1];
 
-            if(!IsValid(vx,vy) || grid[vx,vy] == Tile.BLANK)
+            if (IsValid(vx,vy) && grid[vx,vy] == Tile.BLANK)
             {
-                continue;
+                n++;
             }
-
-            n++;
         }
 
-        // TODO: Higher probability of chosing tiles with more blank neighbours
-        // Should increase uiniform
+        return n;
+    }
 
-        switch(n)
+    /*
+    ====================
+    GetRollWeight
+    Returns probability of a tile being
+    randomly selected based on its neighbour count
+    ====================
+    */
+    private float GetRollWeight(int x, int y)
+    {
+        int neighbours = GetBlankNeighbours(x,y);
+
+        // Higher probability of chosing tiles with more blank neighbours        
+        switch(neighbours)
         {
             case 0:
-                return 0.9f;
+                return 0.2f;
 
             case 1:
-                return 0.8f;
+                return 0.3f;
 
             case 2:
-                return 0.4f;
+                return 0.5f;
             
             case 3:
-                return 0.3f;
+                return 0.8f;
             
             case 4:
                 return 0.9f;
@@ -602,7 +532,6 @@ public class Maze_Generator : Node
     /*
     ====================
     CreateMultiMesh
-
     Create a multi mesh of wall tiles with static trimesh colliders
     ====================
     */
@@ -821,6 +750,46 @@ public class Maze_Generator : Node
         }
 
         return (childCount, isRelevantSubtree);
+    }
+
+    /*
+    ====================
+    GETS
+    ====================
+    */
+    public string GetMapName()
+    {
+        return mapName;
+    }
+
+    public int[] GetMapSize()
+    {
+        return new int[]{width, height};
+    }
+
+    public int GetMapWidth()
+    {
+        return width;
+    }
+
+    public int GetMapHeight()
+    {
+        return height;
+    }
+
+    public int GetMapScale()
+    {
+        return SCALE;
+    }
+
+    public string GetTileType(int x, int y)
+    {
+        return grid[x,y].ToString();
+    }
+
+    public string[] GetMapNames()
+    {
+        return ObjectExtensions.Copy(mapNames);
     }
 }
 

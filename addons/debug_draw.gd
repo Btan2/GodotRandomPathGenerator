@@ -7,6 +7,8 @@ const LINES_LINGER_FRAMES = 1
 var _lines := []
 var _line_material_pool := []
 
+var _mat_laser = preload("res://materials/Material_Laser.tres")
+
 func draw_line_3d(a: Vector3, b: Vector3, color: Color):
 	var g = ImmediateGeometry.new()
 	g.material_override = _get_line_material()
@@ -14,6 +16,8 @@ func draw_line_3d(a: Vector3, b: Vector3, color: Color):
 	g.set_color(color)
 	g.add_vertex(a)
 	g.add_vertex(b)
+	g.add_vertex(b + Vector3(0,0.25,0))
+	g.add_vertex(a + Vector3(0,0.25,0))
 	g.end()
 	add_child(g)
 	_lines.append({
@@ -21,14 +25,11 @@ func draw_line_3d(a: Vector3, b: Vector3, color: Color):
 		"frame": Engine.get_frames_drawn() + LINES_LINGER_FRAMES,
 	})
 
-func draw_ray_3d(origin: Vector3, direction: Vector3, length: float, color : Color):
-	draw_line_3d(origin, origin + direction * length, color)
-
 func _get_line_material() -> SpatialMaterial:
 	var mat : SpatialMaterial
 	if len(_line_material_pool) == 0:
 		mat = SpatialMaterial.new()
-		mat.flags_unshaded = true
+		mat.flags_unshaded = false
 		mat.vertex_color_use_as_albedo = true
 	else:
 		mat = _line_material_pool[-1]

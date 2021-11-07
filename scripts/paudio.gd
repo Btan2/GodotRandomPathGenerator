@@ -8,19 +8,22 @@ paudio.gd
 """
 
 export var plyr_audio_dir : String = "res://audio/"
+export var footstep_volume : float = 0.025
+export var jump_volume : float = 0.1
+
 onready var player: KinematicBody = get_parent()
 onready var feet: AudioStreamPlayer = $FeetFX # Footstep sfx
 onready var jump: AudioStreamPlayer = $JumpFX # Jump, fall damage sfx
 onready var env: AudioStreamPlayer = $EnvFX # Environment sfx; falling, underwater etc.
 
 var feet_concrete = []
+var feet_dirt = []
 var jump_concrete = []
 var land_dirt = []
 var land_arr = []
 var feet_arr = []
 var jump_arr = []
-var footstep_volume : float = 0.025
-var jump_volume : float = 0.1
+
 var step_distance : float = 0.0
 var last_position : Vector3 = Vector3.ZERO
 
@@ -45,6 +48,8 @@ func _ready() -> void:
 		while(file != ""):
 			if file.begins_with("concrete") and file.ends_with("ogg"):
 				feet_concrete.append(load(plyr_audio_dir + file))
+			elif file.begins_with("dirt") and file.ends_with("wav"):
+				feet_dirt.append(load(plyr_audio_dir + file))
 			elif file.begins_with("jump_concrete") and file.ends_with("ogg"):
 				jump_concrete.append(load(plyr_audio_dir + file))
 			elif file.begins_with("land_concrete") and file.ends_with("ogg"):
@@ -112,6 +117,12 @@ func play_footstep(vel : int) -> void:
 	# Get horizontal distance from move
 	position = player.global_transform.origin
 	position[1] = 0.0
+	#var prev = last_position
+	
+	##TODO:
+	# Enable external level controllers to call a function to reset step distance
+	# Step distance needs to be reset when teleporting the player
+	
 	step_distance += position.distance_to(last_position)
 	last_position = position
 	
@@ -216,9 +227,9 @@ func set_ground_type(ground : String) -> void:
 				#land_arr = land_water
 				pass
 			"DIRT":
-				#feet_arr = feet_dirt
-				#jump_arr = jump_dirt
-				#land_arr = land_dirt
+				feet_arr = feet_dirt
+#				jump_arr = jump_dirt
+#				land_arr = land_dirt
 				pass
 			"METAL":
 				#feet_arr = feet_metal

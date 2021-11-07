@@ -1,0 +1,121 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://scripts/Console.cs" type="Script" id=1]
+[ext_resource path="res://textures/console/console_noise.jpg" type="Texture" id=2]
+[ext_resource path="res://fonts/Console_Font.tres" type="DynamicFont" id=3]
+
+[sub_resource type="StyleBoxEmpty" id=1]
+
+[sub_resource type="StyleBoxEmpty" id=2]
+
+[sub_resource type="Shader" id=3]
+code = "shader_type canvas_item;
+
+uniform vec4 color : hint_color;
+uniform float brightness = 1.0;
+uniform float contrast = 1.0;
+uniform float saturation = 1.0;
+uniform float col_transparency = 1.0;
+
+void fragment(){
+	float ratio = SCREEN_PIXEL_SIZE.x/SCREEN_PIXEL_SIZE.y;
+	vec2 tex_uv = (SCREEN_UV - vec2(0.5)) / vec2(ratio, 1.0);
+	vec3 colTex = texture(TEXTURE, tex_uv).rgb;
+	vec2 uv = (SCREEN_UV - vec2(0.5)) / vec2(ratio, 1.0);
+	vec3 col = color.rgb;
+	col = mix(vec3(0.0), col, brightness);
+	col = mix(vec3(0.5), col, contrast);
+	col = mix(vec3(dot(vec3(1.0), col) * 0.33333), col, saturation);
+	col = mix(colTex.rgb, col, col_transparency);
+	COLOR = vec4(col, 1.0);
+}"
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = SubResource( 3 )
+shader_param/color = Color( 0.933333, 0.227451, 0.227451, 1 )
+shader_param/brightness = 1.0
+shader_param/contrast = 1.0
+shader_param/saturation = 1.0
+shader_param/col_transparency = 0.085
+
+[node name="Console" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VersionControl" type="Label" parent="."]
+margin_left = 1620.0
+margin_top = -540.0
+margin_right = 1915.0
+margin_bottom = -456.0
+custom_fonts/font = ExtResource( 3 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "Console v0.00
+----------------------
+"
+align = 2
+clip_text = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Text_Output" type="Label" parent="."]
+anchor_top = -0.038
+anchor_bottom = -0.038
+margin_left = 5.0
+margin_top = -1064.96
+margin_right = 1915.0
+margin_bottom = 15.04
+grow_vertical = 0
+size_flags_horizontal = 0
+size_flags_vertical = 2
+custom_fonts/font = ExtResource( 3 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "
+"
+valign = 2
+clip_text = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Text_Input" type="LineEdit" parent="."]
+margin_left = 5.0
+margin_top = -26.0
+margin_right = 1915.0
+size_flags_horizontal = 8
+custom_styles/focus = SubResource( 1 )
+custom_styles/normal = SubResource( 2 )
+custom_fonts/font = ExtResource( 3 )
+custom_colors/selection_color = Color( 1, 0.890196, 0, 1 )
+custom_colors/cursor_color = Color( 1, 0.890196, 0, 1 )
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
+text = "aaa"
+max_length = 124
+context_menu_enabled = false
+shortcut_keys_enabled = false
+caret_blink = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Texture_BKG" type="Sprite" parent="."]
+material = SubResource( 4 )
+position = Vector2( 0, -1080 )
+z_index = -1
+texture = ExtResource( 2 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 1920, 1080 )
+
+[node name="Rect_Footer" type="ColorRect" parent="."]
+margin_right = 1920.0
+margin_bottom = 4.0
+color = Color( 0.878431, 0.545098, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

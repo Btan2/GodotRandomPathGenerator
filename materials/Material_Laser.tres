@@ -1,15 +1,25 @@
-[gd_resource type="SpatialMaterial" load_steps=3 format=2]
+[gd_resource type="SpatialMaterial" load_steps=5 format=2]
 
 [sub_resource type="OpenSimplexNoise" id=1]
 
 [sub_resource type="NoiseTexture" id=2]
+width = 1024
+height = 1024
 seamless = true
 noise = SubResource( 1 )
 
+[sub_resource type="OpenSimplexNoise" id=3]
+
+[sub_resource type="NoiseTexture" id=4]
+width = 256
+height = 256
+noise = SubResource( 3 )
+
 [resource]
-flags_unshaded = true
 params_blend_mode = 1
 params_billboard_keep_scale = true
-albedo_color = Color( 1, 0, 0, 0.627451 )
 albedo_texture = SubResource( 2 )
+normal_enabled = true
+normal_scale = 1.0
+normal_texture = SubResource( 4 )
 uv1_scale = Vector3( 1, 50, 1 )

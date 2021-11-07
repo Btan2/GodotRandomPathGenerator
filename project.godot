@@ -33,13 +33,11 @@ config/icon="res://icon.png"
 [autoload]
 
 Trace="*res://addons/trace.gd"
-DrawLine3d="*res://addons/DrawLine3D.gd"
 DebugDraw="*res://addons/debug_draw.gd"
 
 [display]
 
-window/size/width=1920
-window/size/height=1080
+window/size/width=800
 window/size/resizable=false
 window/size/fullscreen=true
 

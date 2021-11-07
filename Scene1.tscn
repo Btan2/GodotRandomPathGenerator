@@ -1,27 +1,48 @@
-[gd_scene load_steps=25 format=2]
+[gd_scene load_steps=17 format=2]
 
-[ext_resource path="res://Player.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/Maze_Generator.cs" type="Script" id=2]
 [ext_resource path="res://materials/Material_Floor.tres" type="Material" id=3]
 [ext_resource path="res://textures/RooftilesMetal.jpg" type="Texture" id=4]
 [ext_resource path="res://audio/bkg_darkness.ogg" type="AudioStream" id=5]
 [ext_resource path="res://textures/Wood067_1K_Color.jpg" type="Texture" id=6]
-[ext_resource path="res://textures/console/console_noise.jpg" type="Texture" id=7]
-[ext_resource path="res://scripts/console.cs" type="Script" id=8]
-[ext_resource path="res://MasterLineDraw.gd" type="Script" id=9]
-[ext_resource path="res://shaders/Snow_Squares.shader" type="Shader" id=10]
-[ext_resource path="res://fonts/Console_Font.tres" type="DynamicFont" id=11]
-[ext_resource path="res://materials/Material_Laser_Red.tres" type="Material" id=13]
+[ext_resource path="res://scenes/console.tscn" type="PackedScene" id=7]
+[ext_resource path="res://scripts/Main.cs" type="Script" id=12]
+
+[sub_resource type="PlaneMesh" id=5]
+
+[sub_resource type="SpatialMaterial" id=6]
+params_cull_mode = 2
+albedo_texture = ExtResource( 4 )
+
+[sub_resource type="CubeMesh" id=7]
+
+[sub_resource type="SpatialMaterial" id=8]
+albedo_texture = ExtResource( 6 )
+uv1_scale = Vector3( 0.838, 1, 1 )
+uv1_offset = Vector3( 0.215, -0.028, -0.184 )
+uv2_scale = Vector3( 0.988, 1.021, 0.99 )
+uv2_offset = Vector3( 0.03, -0.058, 0 )
 
 [sub_resource type="PlaneMesh" id=1]
+subdivide_width = 2
+subdivide_depth = 2
 
-[sub_resource type="BoxShape" id=2]
-extents = Vector3( 1, 0.005, 1 )
+[sub_resource type="ConcavePolygonShape" id=9]
+data = PoolVector3Array( 1, 0, 1, 0.3333, 0, 1, 1, 0, 0.3333, 0.3333, 0, 1, 0.3333, 0, 0.3333, 1, 0, 0.3333, 0.3333, 0, 1, -0.3333, 0, 1, 0.3333, 0, 0.3333, -0.3333, 0, 1, -0.3333, 0, 0.3333, 0.3333, 0, 0.3333, -0.3333, 0, 1, -1, 0, 1, -0.3333, 0, 0.3333, -1, 0, 1, -1, 0, 0.3333, -0.3333, 0, 0.3333, 1, 0, 0.3333, 0.3333, 0, 0.3333, 1, 0, -0.3333, 0.3333, 0, 0.3333, 0.3333, 0, -0.3333, 1, 0, -0.3333, 0.3333, 0, 0.3333, -0.3333, 0, 0.3333, 0.3333, 0, -0.3333, -0.3333, 0, 0.3333, -0.3333, 0, -0.3333, 0.3333, 0, -0.3333, -0.3333, 0, 0.3333, -1, 0, 0.3333, -0.3333, 0, -0.3333, -1, 0, 0.3333, -1, 0, -0.3333, -0.3333, 0, -0.3333, 1, 0, -0.3333, 0.3333, 0, -0.3333, 1, 0, -1, 0.3333, 0, -0.3333, 0.3333, 0, -1, 1, 0, -1, 0.3333, 0, -0.3333, -0.3333, 0, -0.3333, 0.3333, 0, -1, -0.3333, 0, -0.3333, -0.3333, 0, -1, 0.3333, 0, -1, -0.3333, 0, -0.3333, -1, 0, -0.3333, -0.3333, 0, -1, -1, 0, -0.3333, -1, 0, -1, -0.3333, 0, -1 )
 
-[sub_resource type="Environment" id=3]
+[sub_resource type="ProceduralSky" id=3]
+sky_top_color = Color( 0.945098, 0.92549, 0.647059, 1 )
+sky_horizon_color = Color( 0.980392, 0.968627, 0.839216, 1 )
+sun_color = Color( 1, 0, 0, 0 )
+texture_size = 0
+
+[sub_resource type="Environment" id=4]
 background_mode = 1
-background_energy = 0.0
-ambient_light_color = Color( 1, 1, 1, 1 )
+background_sky = SubResource( 3 )
+background_energy = 0.11
+ambient_light_color = Color( 0.615686, 0.615686, 0.615686, 1 )
+ambient_light_energy = 0.8
 ambient_light_sky_contribution = 0.0
 fog_enabled = true
 fog_color = Color( 0, 0, 0, 1 )
@@ -33,187 +54,69 @@ fog_height_enabled = true
 fog_height_min = 0.0
 fog_height_max = 15.0
 glow_intensity = 0.0
-adjustment_enabled = true
 adjustment_saturation = 0.77
-
-[sub_resource type="PlaneMesh" id=4]
-
-[sub_resource type="SpatialMaterial" id=5]
-params_cull_mode = 2
-albedo_texture = ExtResource( 4 )
-
-[sub_resource type="CubeMesh" id=6]
-
-[sub_resource type="SpatialMaterial" id=7]
-albedo_texture = ExtResource( 6 )
-uv1_scale = Vector3( 0.838, 1, 1 )
-uv1_offset = Vector3( 0.215, -0.028, -0.184 )
-uv2_scale = Vector3( 0.988, 1.021, 0.99 )
-uv2_offset = Vector3( 0.03, -0.058, 0 )
-
-[sub_resource type="StyleBoxEmpty" id=8]
-
-[sub_resource type="StyleBoxEmpty" id=9]
-
-[sub_resource type="ShaderMaterial" id=10]
-shader = ExtResource( 10 )
-shader_param/color = Color( 0.2, 0.854902, 0.192157, 1 )
-shader_param/solid_color = 1.0
-shader_param/brightness = 0.25
-shader_param/contrast = 1.0
-shader_param/saturation = 1.0
-shader_param/transparency = 1.0
-shader_param/square_alpha = 1.25
-shader_param/texture_alpha = 0.5
-
-[sub_resource type="PlaneMesh" id=11]
-
-[sub_resource type="CubeMesh" id=12]
 
 [node name="ROOT" type="Spatial"]
 pause_mode = 2
-script = ExtResource( 8 )
+script = ExtResource( 12 )
 
-[node name="Map" type="Node" parent="."]
+[node name="Console" parent="." instance=ExtResource( 7 )]
+pause_mode = 2
+
+[node name="Level" type="Node" parent="."]
 pause_mode = 2
 script = ExtResource( 2 )
 
-[node name="Player" parent="." instance=ExtResource( 1 )]
-pause_mode = 1
+[node name="START" type="Spatial" parent="Level"]
 
-[node name="Floor" type="MeshInstance" parent="."]
-transform = Transform( 40, 0, 0, 0, 40, 0, 0, 0, 40, 38.0047, 0, 38.0047 )
+[node name="MeshInstance" type="MeshInstance" parent="Level/START"]
+transform = Transform( 4, 0, 0, 0, 2, -1.73205, 0, 3.4641, 1, 0, 13, -3 )
+mesh = SubResource( 5 )
+material/0 = SubResource( 6 )
+
+[node name="MeshInstance2" type="MeshInstance" parent="Level/START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 0, 12, -5 )
+mesh = SubResource( 7 )
+material/0 = SubResource( 8 )
+
+[node name="MeshInstance3" type="MeshInstance" parent="Level/START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 3, 12, -5 )
+mesh = SubResource( 7 )
+material/0 = SubResource( 8 )
+
+[node name="MeshInstance4" type="MeshInstance" parent="Level/START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 1.5, 12, -5 )
+mesh = SubResource( 7 )
+material/0 = SubResource( 8 )
+
+[node name="MeshInstance5" type="MeshInstance" parent="Level/START"]
+transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, -2.5, 12, -5 )
+mesh = SubResource( 7 )
+material/0 = SubResource( 8 )
+
+[node name="Floor" type="MeshInstance" parent="Level"]
+transform = Transform( 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0 )
 mesh = SubResource( 1 )
 material/0 = ExtResource( 3 )
 
-[node name="StaticBody" type="StaticBody" parent="Floor"]
+[node name="StaticBody" type="StaticBody" parent="Level/Floor"]
 
-[node name="CollisionShape" type="CollisionShape" parent="Floor/StaticBody"]
-shape = SubResource( 2 )
+[node name="CollisionShape" type="CollisionShape" parent="Level/Floor/StaticBody"]
+shape = SubResource( 9 )
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 3 )
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Level"]
+environment = SubResource( 4 )
 
-[node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 1, 0, 4.37114e-08, -4.37114e-08, 1.91069e-15, 1, 0, -1, 1.91069e-15, 0, 2, 0 )
-light_color = Color( 0.447059, 0.435294, 0.309804, 1 )
+[node name="DirectionalLight" type="DirectionalLight" parent="Level"]
+transform = Transform( 1, 8.35189e-23, 4.37114e-08, -4.37114e-08, 1.91069e-15, 1, 0, -1, 1.91069e-15, 0, 2, 0 )
+light_color = Color( 0.976471, 0.972549, 0.937255, 1 )
 light_energy = 0.36
 light_specular = 0.38
 
-[node name="BKG_Ambient" type="AudioStreamPlayer" parent="."]
+[node name="BKG_Ambient" type="AudioStreamPlayer" parent="Level"]
 stream = ExtResource( 5 )
 volume_db = -20.913
 autoplay = true
 
-[node name="START" type="Spatial" parent="."]
-
-[node name="MeshInstance" type="MeshInstance" parent="START"]
-transform = Transform( 4, 0, 0, 0, 2, -1.73205, 0, 3.4641, 1, 0, 13, -3 )
-mesh = SubResource( 4 )
-material/0 = SubResource( 5 )
-
-[node name="MeshInstance2" type="MeshInstance" parent="START"]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 0, 12, -5 )
-mesh = SubResource( 6 )
-material/0 = SubResource( 7 )
-
-[node name="MeshInstance3" type="MeshInstance" parent="START"]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 3, 12, -5 )
-mesh = SubResource( 6 )
-material/0 = SubResource( 7 )
-
-[node name="MeshInstance4" type="MeshInstance" parent="START"]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, 1.5, 12, -5 )
-mesh = SubResource( 6 )
-material/0 = SubResource( 7 )
-
-[node name="MeshInstance5" type="MeshInstance" parent="START"]
-transform = Transform( 0.35, 0, 0, 0, -9.17939e-08, -0.35, 0, 2.1, -1.5299e-08, -2.5, 12, -5 )
-mesh = SubResource( 6 )
-material/0 = SubResource( 7 )
-
-[node name="Console" type="Node2D" parent="."]
-pause_mode = 2
-z_index = 10
-
-[node name="Console_Text" type="Label" parent="Console"]
-anchor_top = -0.038
-anchor_bottom = -0.038
-margin_left = 5.0
-margin_top = -1110.0
-margin_right = 1915.0
-margin_bottom = -30.0
-grow_vertical = 0
-size_flags_horizontal = 0
-size_flags_vertical = 2
-custom_fonts/font = ExtResource( 11 )
-custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
-text = "Trails of the Abyss v0.01"
-valign = 2
-clip_text = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Console_Input" type="LineEdit" parent="Console"]
-margin_left = 5.0
-margin_top = -26.0
-margin_right = 1915.0
-size_flags_horizontal = 8
-custom_styles/focus = SubResource( 8 )
-custom_styles/normal = SubResource( 9 )
-custom_fonts/font = ExtResource( 11 )
-custom_colors/selection_color = Color( 1, 0.890196, 0, 1 )
-custom_colors/cursor_color = Color( 1, 0.890196, 0, 1 )
-custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
-custom_colors/font_color = Color( 1, 0.890196, 0, 1 )
-text = "aaa"
-max_length = 124
-context_menu_enabled = false
-shortcut_keys_enabled = false
-caret_blink = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Squares" type="Sprite" parent="Console"]
-material = SubResource( 10 )
-scale = Vector2( 1, -1 )
-z_index = -1
-texture = ExtResource( 7 )
-centered = false
-region_enabled = true
-region_rect = Rect2( 0, 0, 1920, 1080 )
-
-[node name="Console_Footer" type="ColorRect" parent="Console"]
-margin_right = 1920.0
-margin_bottom = 4.0
-color = Color( 0.878431, 0.545098, 0, 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, -0.1, 0, 1, -4.37114e-09, 39, 1, 42 )
-mesh = SubResource( 11 )
-material/0 = ExtResource( 13 )
-
-[node name="MeshInstance3" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, -8.88178e-16, 0, 1.06581e-14, 0.1, 6, 2, 5 )
-mesh = SubResource( 11 )
-material/0 = ExtResource( 13 )
-
-[node name="Laser" type="Control" parent="."]
-material = ExtResource( 13 )
-margin_right = 40.0
-margin_bottom = 40.0
-script = ExtResource( 9 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="MeshInstance2" type="MeshInstance" parent="."]
-transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1, 0 )
-visible = false
-mesh = SubResource( 12 )
-material/0 = null
+[node name="Player" parent="." instance=ExtResource( 1 )]
+pause_mode = 1

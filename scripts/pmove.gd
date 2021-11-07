@@ -21,8 +21,8 @@ const JUMPFORCE : float = 20.0       # default: 27.0
 const AIRCONTROL : float = 0.9       # default: 0.9
 const STEPSIZE : float = 1.8         # default: 1.8
 const MAXHANG : float = 0.2          # defualt: 0.2
-const PLAYER_HEIGHT : float = 1.8   # default: 3.6
-const CROUCH_HEIGHT : float = 0.6    # default: 2.0
+const PLAYER_HEIGHT : float = 3.6   # default: 3.6
+const CROUCH_HEIGHT : float = 2.0    # default: 2.0
 const R_PUSH = 0.1
 
 var deltaTime : float = 0.0
@@ -42,6 +42,9 @@ var velocity : Vector3 = Vector3.ZERO
 
 enum {GROUNDED, FALLING, LADDER, SWIMMING, NOCLIP}
 var state = GROUNDED
+
+enum CompassDir {NORTH, SOUTH, EAST, WEST}
+var global_direction = CompassDir.NORTH
 
 """
 ===============
@@ -102,22 +105,23 @@ func _physics_process(delta):
 		jump_button()
 		check_state()
 	
-	var c = compass();
-	$Label.text = str(c) + "\n"
+	$Label.text = str(compass()) + "\n"
 	$Label.text += "\n"
-	
 	var p = localize_position(global_transform.origin)
-	#level_bounds(p)
-	$Label.text += str(p) + "\n"
+	$Label.text += "Grid Posision: " + str(p) + "\n"
+	$Label.text += "Global position: {" + str(int(global_transform.origin.x)) + ", " + str(int(global_transform.origin.z)) + "}\n"
+	$Label.text += "Current Map: " + str(MapPosition(global_transform.origin))
+
+func  MapPosition(pos : Vector3):
+	var x = int(pos.x/400 + 0.5)
+	var y = int(pos.z/400 + 0.5)
+	return Vector2(y, x)
 
 func localize_position(pos : Vector3):
 	var localPos = Vector3.ZERO
 	for i in range(3):
 		localPos[i] = int(pos[i]/10 + 0.5)
 	return localPos
-
-enum CompassDir {NORTH, SOUTH, EAST, WEST}
-var global_direction = CompassDir.NORTH
 
 func compass():
 	var dir = transform.basis.z
@@ -138,17 +142,6 @@ func compass():
 		outStr += CompassDir.keys()[CompassDir.WEST]
 	
 	return outStr
-
-func level_bounds(p):
-	if p.x > 35:
-		global_transform.origin.x = -5 * 10
-	if p.z > 35:
-		global_transform.origin.z = -5 * 10
-	if p.x < -5:
-		global_transform.origin.x = 35 * 10
-	if p.z < -5:
-		global_transform.origin.z = 35 * 10
-
 
 """
 ===============
@@ -253,7 +246,7 @@ func categorize_position():
 			if state == FALLING:
 				calc_fall_damage()
 			
-			#global_transform.origin = trace.endpos # Clamp to ground
+			global_transform.origin = trace.endpos # Clamp to ground
 			prev_y = global_transform.origin[1]
 			impact_velocity = 0
 			
@@ -270,11 +263,11 @@ func calc_fall_damage():
 	fall_dist = int(round(abs(prev_y - global_transform.origin[1])))
 	if fall_dist >= 20 and impact_velocity >= 45: 
 		jump_press = false
-		sfx.play_land_hurt()
+		#sfx.play_land_hurt()
 		head.parse_damage(Vector3.ONE * float(impact_velocity / 6))
 	else:
-		if fall_dist > PLAYER_HEIGHT:
-			sfx.play_land()
+		#if fall_dist > PLAYER_HEIGHT:
+			#sfx.play_land()
 		if fall_dist >= 6:
 			head.parse_damage(Vector3.ONE * float(impact_velocity / 8))
 
@@ -302,7 +295,7 @@ func jump_button():
 		jump_press = false
 		hangtime = 0.0
 		
-		sfx.play_jump()
+		#sfx.play_jump()
 		
 		# Make sure jump velocity is positive if moving down
 		if state == FALLING or velocity[1] < 0.0:

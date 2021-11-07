@@ -1,0 +1,21 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/dirt_06.wav-0f4a9693cd8b66088676ca83b5b13119.sample"
+
+[deps]
+
+source_file="res://audio/dirt_06.wav"
+dest_files=[ "res://.import/dirt_06.wav-0f4a9693cd8b66088676ca83b5b13119.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop=false
+compress/mode=0
