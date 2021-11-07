@@ -45,18 +45,22 @@ Weighted randomization with 10x scale:
 # Controls
   - WASD - Move 
   - Mouse - Look
+  - N - Noclip
   - ~ - Open console
-    - "map restart" - Regen map
+    - "map restart" - Restart map
     - "map list" - Show maps available to load
-    - "map map03_350.png" - Load map
-    - "console_speed x" - Console window open/close speed (x)
-    - "console_height x" - Console window screen height
+    - "map map03_150 closed" - Loads a map with 150 chisels applied and generates boundary walls to confine the player inside the maze.
+    - "map map03_650 open" - Loads a map with a custom number of chisels applied (650) but <strong>does not</strong> generate boundary walls to keep the player inside the maze,
+    - "console_speed x" - Console window open/close speed ==> 0.0 - 100.0
+    - "console_height x" - Console window screen height ==> 0.0 - 1.0
     - "console_texture random" - Randomize console background texture
 
 # Current Issues and TODOs
   - Stack overflow when chiseling large grids
   - Long load times with over 1000 cuts
-  - Reduce script coupling.
+  - CONSOLE MAY BE BUGGY
+  - Need to reduce coupling.
+  - I am experiencing laggy inputs on my machine, although this happens to me with every project with Godot, so hopefully it's just a problem on my end only.
   
 # Notes  
   - Requires Mono version of Godot to build/edit C# scripts
