@@ -15,6 +15,9 @@ This script incorporates weighted randomization which sets the probability of sp
 <br>
 Image reading functionality has been added. Map images can be used to create semi-random environments. Images must only contain white and black values and have full alpha; any given pixel colour value must be either rgba(255,255,255,255) or rgba(0,0,0,255). Images must be in .png format. You can use MS Paint or any other drawing program to create maps. Image size must be relatively small as the dimensions reflect the grid size e.g. 40px = 40 rows/columns = 800 cells. Large images will probably crash.
 <br>
+Maps can be chiseled to custom amount. The maps contained in this project follow the conventions of "name -> cuts -> format" e.g. "map03_350.png"
+Cuts refers to the maximum number of times to set a random tile from the grid to "BLANK" during path randomization. Less cuts means more open spaces, more cuts means more enclosed spaces.
+<br>
 <br>
 This project is under the MIT license.
 <br>
@@ -45,15 +48,17 @@ Weighted randomization with 10x scale:
   - ~ - Open console
     - "map restart" - Regen map
     - "map list" - Show maps available to load
-    - "map mapname_9.png" - Load map
+    - "map map03_350.png" - Load map
     - "console_speed x" - Console window open/close speed (x)
     - "console_height x" - Console window screen height
     - "console_texture random" - Randomize console background texture
 
 # Current Issues and TODOs
-  - Stack overflow when chiseling grids larger than 70x70, will crash the engine.
-  - Long load time with grids greater than 50x50
-# Notes
+  - Stack overflow when chiseling large grids
+  - Long load times with over 1000 cuts
+  - Reduce script coupling.
+  
+# Notes  
   - Requires Mono version of Godot to build/edit C# scripts
   - The scale const in 'Maze_Generator' can be used to inflate small grids.
   - Using edited version of Q_Move: https://github.com/Btan2/Q_Move/blob/main/scripts/pmove.gd
